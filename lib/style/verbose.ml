@@ -240,3 +240,22 @@ module RedundantAnd : EXPRCHECK = struct
     end
   let name = "RedundantAnd", check
 end
+
+(** ------------ Checks rules: if c then () else e --------------------- *)
+module IfEmptyThenElse : EXPRCHECK = struct
+  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  let fix = "replace with `if not c then e`"
+  let violation = "using `if c then () else e`"
+  let check st (E {location; source; pattern} : ctxt) =
+    begin match pattern with
+      | Pexp_ifthenelse (cond, then_branch, Some else_branch) ->
+        begin match then_branch.pexp_desc with
+          | Pexp_construct ({ txt = Lident "()"; _ }, None) ->
+            let _ = cond and _ = else_branch in
+            st := Hint.mk_hint location source fix violation :: !st
+          | _ -> ()
+        end
+      | _ -> ()
+    end
+  let name = "IfEmptyThenElse", check
+end

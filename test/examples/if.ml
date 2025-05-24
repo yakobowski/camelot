@@ -58,3 +58,20 @@ let rec nonsense (p: 'a -> bool) (l : 'a list) =
   match l with
   | [] -> false
   | h :: t -> if p h then nonsense p t else true
+
+(* Tests for IfEmptyThenElse *)
+
+(* Should be flagged: if c then () else e *)
+let f x = if x > 0 then () else print_endline "negative"
+
+(* Should be flagged: complex condition, if c then () else e *)
+let g y z = if y && z || x then () else print_endline "action"
+
+(* Should NOT be flagged: then branch is not unit *)
+let h a = if a then print_endline "action" else print_endline "false"
+
+(* Should NOT be flagged: else branch is unit, not then branch *)
+let i b = if b then print_endline "true" else ()
+
+(* Should NOT be flagged: no else branch *)
+let j c = if c then ()

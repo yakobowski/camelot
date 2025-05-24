@@ -368,6 +368,24 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
+    File ./examples/if.ml, line 68, columns: 12-62
+    Warning:
+    	using `if c then () else e`
+    You wrote:
+    	 if (y && z) || x then () else print_endline "action"
+    Consider:
+    	replace with `if not c then e`
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/if.ml, line 65, columns: 10-56
+    Warning:
+    	using `if c then () else e`
+    You wrote:
+    	 if x > 0 then () else print_endline "negative"
+    Consider:
+    	replace with `if not c then e`
+
+    (* ------------------------------------------------------------------------ *)
     File ./examples/if.ml, line 60, columns: 14-48
     Warning:
     	overly verbose if statement that can be simplified
