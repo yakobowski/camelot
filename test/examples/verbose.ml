@@ -5,6 +5,9 @@ let f t = [1] @ t
 (* Likewise, but even more verbose *)
 let f t = 1 :: [] @ t
 
+(* No warning here *)
+let f x y = x @ [1] @ y
+
 
 (* Tuple projection bad! *)
 

@@ -176,7 +176,7 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 87, columns: 8-57
+    File ./examples/verbose.ml, line 90, columns: 8-57
     Warning:
     	Usage of the `&&` is redundant
     You wrote:
@@ -185,7 +185,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 86, columns: 8-57
+    File ./examples/verbose.ml, line 89, columns: 8-57
     Warning:
     	Usage of the `&&` is redundant
     You wrote:
@@ -194,7 +194,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 85, columns: 8-40
+    File ./examples/verbose.ml, line 88, columns: 8-40
     Warning:
     	Usage of the `&&` is redundant
     You wrote:
@@ -203,7 +203,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 84, columns: 8-24
+    File ./examples/verbose.ml, line 87, columns: 8-24
     Warning:
     	Usage of the `&&` is redundant
     You wrote:
@@ -212,7 +212,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 83, columns: 8-30
+    File ./examples/verbose.ml, line 86, columns: 8-30
     Warning:
     	Usage of the `&&` is redundant
     You wrote:
@@ -221,7 +221,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 82, columns: 8-26
+    File ./examples/verbose.ml, line 85, columns: 8-26
     Warning:
     	Usage of the `&&` is redundant
     You wrote:
@@ -230,7 +230,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 81, columns: 8-57
+    File ./examples/verbose.ml, line 84, columns: 8-57
     Warning:
     	Usage of the `||` is redundant
     You wrote:
@@ -239,7 +239,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 80, columns: 8-57
+    File ./examples/verbose.ml, line 83, columns: 8-57
     Warning:
     	Usage of the `||` is redundant
     You wrote:
@@ -248,7 +248,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 79, columns: 8-40
+    File ./examples/verbose.ml, line 82, columns: 8-40
     Warning:
     	Usage of the `||` is redundant
     You wrote:
@@ -257,7 +257,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 78, columns: 8-24
+    File ./examples/verbose.ml, line 81, columns: 8-24
     Warning:
     	Usage of the `||` is redundant
     You wrote:
@@ -266,7 +266,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 77, columns: 8-30
+    File ./examples/verbose.ml, line 80, columns: 8-30
     Warning:
     	Usage of the `||` is redundant
     You wrote:
@@ -275,7 +275,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 76, columns: 8-26
+    File ./examples/verbose.ml, line 79, columns: 8-26
     Warning:
     	Usage of the `||` is redundant
     You wrote:
@@ -284,7 +284,7 @@ let%expect_test _ =
     	simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 62, columns: 8-85
+    File ./examples/verbose.ml, line 65, columns: 8-85
     Warning:
     	using nested if statements more than three layers deep
     You wrote:
@@ -293,7 +293,7 @@ let%expect_test _ =
     	using let statements or helper methods / rethinking logic
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, lines 44-55, columns: 2-5
+    File ./examples/verbose.ml, lines 47-58, columns: 2-5
     Warning:
     	using nested match statements three or more layers deep
     You wrote:
@@ -307,7 +307,7 @@ let%expect_test _ =
     	using let statements or helper methods / rethinking logic
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 11, columns: 31-36
+    File ./examples/verbose.ml, line 14, columns: 31-36
     Warning:
     	using fst / snd to project values out of a tuple
     You wrote:
@@ -316,13 +316,22 @@ let%expect_test _ =
     	using a let pattern match statement instead
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 11, columns: 23-28
+    File ./examples/verbose.ml, line 14, columns: 23-28
     Warning:
     	using fst / snd to project values out of a tuple
     You wrote:
     	 fst t
     Consider:
     	using a let pattern match statement instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 9, columns: 16-23
+    Warning:
+    	using `@` to prepend an element to a list
+    You wrote:
+    	 [1] @ y
+    Consider:
+    	using `::` instead
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 6, columns: 10-21
@@ -343,7 +352,7 @@ let%expect_test _ =
     	using `::` instead
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 62, columns: 0-80
+    File ./examples/verbose.ml, line 65, columns: 0-80
     Warning:
     	exceeding the 80 character line limit
     You wrote:
@@ -352,7 +361,7 @@ let%expect_test _ =
     	indenting to avoid exceeding the 80 character line limit
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 13, columns: 0-80
+    File ./examples/verbose.ml, line 16, columns: 0-80
     Warning:
     	exceeding the 80 character line limit
     You wrote:
