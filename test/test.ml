@@ -467,15 +467,6 @@ let%expect_test _ =
     	rewriting using a boolean operator like `||`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 24, columns: 10-27
-    Warning:
-    	checking negation in the if condition
-    You wrote:
-    	 if not e then f x
-    Consider:
-    	swapping the then and else branches of the if statement
-
-    (* ------------------------------------------------------------------------ *)
     File ./examples/if.ml, line 21, columns: 9-31
     Warning:
     	checking negation in the if condition
