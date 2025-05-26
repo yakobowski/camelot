@@ -325,15 +325,6 @@ let%expect_test _ =
     	using a let pattern match statement instead
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 9, columns: 16-23
-    Warning:
-    	using `@` to prepend an element to a list
-    You wrote:
-    	 [1] @ y
-    Consider:
-    	using `::` instead
-
-    (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 6, columns: 10-21
     Warning:
     	using `@` to prepend an element to a list

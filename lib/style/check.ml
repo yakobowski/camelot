@@ -20,8 +20,22 @@ module type CHECK = sig
 
 end
 
+type 'a callback = {
+  pre_callback: 'a -> unit;
+  (** Callback called before the analysis of the node *)
+
+  post_callback: 'a -> unit;
+  (** Callback called after the analysis of the node and its children *)
+}
+
+module type CHECK_WITH_CALLBACK = sig
+  include CHECK
+  val callback: Parsetree.expression callback
+end
+
 (** Signature for expression checking rules *)
 module type EXPRCHECK = CHECK with type ctxt = Parsetree.expression_desc Pctxt.pctxt
+module type EXPRCHECKCALLBACK = CHECK_WITH_CALLBACK with type ctxt = Parsetree.expression_desc Pctxt.pctxt
 
 (** Signature for structure (top-level) checking rules *)
 module type STRUCTURECHECK = CHECK with type ctxt = Parsetree.structure_item_desc Pctxt.pctxt

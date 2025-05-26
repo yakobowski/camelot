@@ -24,6 +24,10 @@ let expr_checks = [
 ; Verbose.RedundantAnd.name
 ]
 
+let exp_callbacks = [
+  Verbose.LitPrepend.callback
+]
+
 (** Top-level structure checks *)
 let struct_checks = [
   Hof.UseMap.name

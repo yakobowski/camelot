@@ -4,14 +4,53 @@ open Astutils
 open Check
 
 (** ----------------------- Checks rules: [_] \@ _ ---------------------------- *)
-module LitPrepend : EXPRCHECK = struct
+module LitPrepend : EXPRCHECKCALLBACK = struct
+  (* List of nodes that should be ignored when checking for this rule.
+     We want to avoid warnings on code such as `x @ [v] @ y`, which is nicely
+     symmetric when dealing with e.g. binary trees. *)
+  let ignore_nodes = ref []
+
+  (* Find all expressions directly under a @, to mark them as being skipped. *)
+  let rec list_concat_nodes (exp: Parsetree.expression) =
+    list_concat_nodes_desc exp.pexp_desc
+  and list_concat_nodes_desc desc =
+    match desc with
+    | Pexp_apply (f, [_; (_, e2)]) ->
+      if f =~ "@" then
+        e2.pexp_desc :: list_concat_nodes e2
+      else []
+    | _ -> []
+
+  (* Mark nodes under @ as being skipped *)
+  let pre_callback e =
+    let to_skip = list_concat_nodes e in
+    (* Push on the stack if some nodes must be skipped.
+       Push ourselves as the first element of the pair to
+       make the post callback easier to write. *)
+    if to_skip <> [] then
+      ignore_nodes := (e, to_skip) :: !ignore_nodes
+
+  let post_callback e =
+    match !ignore_nodes with
+    | [] -> ()
+    | (e', _) :: rest ->
+      (* Pop the top of the stack if it has been pushed by us. *)
+      if e == e' then
+        ignore_nodes := rest
+
+  let callback = { pre_callback; post_callback }        
+
+  (* Should [e] be ignored while testing this rule? *)
+  let should_be_ignored e =
+    List.exists (fun (_, l) -> List.exists ((==) e) l) !ignore_nodes
+
   type ctxt = Parsetree.expression_desc Pctxt.pctxt
   let fix = "using `::` instead"
   let violation = "using `@` to prepend an element to a list"
   let check st (E {location; source; pattern} : ctxt) =
     begin match pattern with
       | Pexp_apply (application, [(_, lop); _]) ->
-        if application =~ "@" && is_singleton_list lop then
+        if application =~ "@" && is_singleton_list lop && not (should_be_ignored pattern) then
           let raw = IOUtils.code_at_loc location source in
           st := Hint.mk_hint location raw fix violation :: !st
       | _ -> ()

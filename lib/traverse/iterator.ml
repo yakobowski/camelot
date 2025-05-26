@@ -23,8 +23,15 @@ let rec linterator exp_handler structitem_handler structure_handler =
 
 (* Iterator for traversing expressions *)
 and expr_iterator (handler: Parsetree.expression -> 'a) (iterator: Ast_iterator.iterator) (expr: Parsetree.expression) : unit =
+  let callbacks get = List.iter (fun c -> (get c) expr) Style.Checkers.exp_callbacks in
+  (* Call the pre callbacks *)
+  callbacks (fun c -> c.Style.Check.pre_callback);
+  (* Do the expression itself *)
   handler expr;
-  E.iter iterator expr
+  (* Do its children *)
+  E.iter iterator expr;
+  (* Call the post callbacks *)
+  callbacks (fun c -> c.Style.Check.post_callback)
 
 (* Iterator for traversing structure_items (top level modules declarations) *)
 and structure_item_iterator (handler: Parsetree.structure_item -> 'a) (iterator: Ast_iterator.iterator) (structure_item: Parsetree.structure_item) : unit =
