@@ -5,6 +5,8 @@ let e = x
 
 let beta = e
 
+let f _x = ()
+
 
 (* if e then true else false --> e *)
 let t1 = if e then true else false
@@ -17,6 +19,9 @@ let t3 = if beta then beta else false
 
 (* if not e then x else y -> if not e then y else x *)
 let t4 = if not e then x else y
+
+(* if not e then v -> should not be flagged *)
+let t4' = if not e then f x
 
 (* if x then true else y --> x || y *)
 let t5 = if x then true else y

@@ -368,7 +368,7 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 60, columns: 14-48
+    File ./examples/if.ml, line 65, columns: 14-48
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -377,7 +377,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `||` and `not`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 55, columns: 14-45
+    File ./examples/if.ml, line 60, columns: 14-45
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -386,7 +386,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `&&` and `not`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 50, columns: 14-47
+    File ./examples/if.ml, line 55, columns: 14-47
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -395,7 +395,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `&&`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 45, columns: 14-48
+    File ./examples/if.ml, line 50, columns: 14-48
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -404,7 +404,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `||`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 38, columns: 9-39
+    File ./examples/if.ml, line 43, columns: 9-39
     Warning:
     	returning the condition of an if statement on success and a boolean literal otherwise
     You wrote:
@@ -413,7 +413,7 @@ let%expect_test _ =
     	returning just the condition or simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 34, columns: 20-41
+    File ./examples/if.ml, line 39, columns: 20-41
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -422,7 +422,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `||` and `not`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 34, columns: 20-41
+    File ./examples/if.ml, line 39, columns: 20-41
     Warning:
     	returning the condition of an if statement on success and a boolean literal otherwise
     You wrote:
@@ -431,7 +431,7 @@ let%expect_test _ =
     	returning just the condition or simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 31, columns: 9-30
+    File ./examples/if.ml, line 36, columns: 9-30
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -440,7 +440,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `||` and `not`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 28, columns: 9-31
+    File ./examples/if.ml, line 33, columns: 9-31
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -449,7 +449,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `&&` and `not`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 25, columns: 9-31
+    File ./examples/if.ml, line 30, columns: 9-31
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -458,7 +458,7 @@ let%expect_test _ =
     	rewriting using a boolean operator like `&&`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 22, columns: 9-30
+    File ./examples/if.ml, line 27, columns: 9-30
     Warning:
     	overly verbose if statement that can be simplified
     You wrote:
@@ -467,7 +467,16 @@ let%expect_test _ =
     	rewriting using a boolean operator like `||`
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 19, columns: 9-31
+    File ./examples/if.ml, line 24, columns: 10-27
+    Warning:
+    	checking negation in the if condition
+    You wrote:
+    	 if not e then f x
+    Consider:
+    	swapping the then and else branches of the if statement
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/if.ml, line 21, columns: 9-31
     Warning:
     	checking negation in the if condition
     You wrote:
@@ -476,7 +485,7 @@ let%expect_test _ =
     	swapping the then and else branches of the if statement
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 16, columns: 9-37
+    File ./examples/if.ml, line 18, columns: 9-37
     Warning:
     	returning the condition of an if statement on success and a boolean literal otherwise
     You wrote:
@@ -485,7 +494,7 @@ let%expect_test _ =
     	returning just the condition or simplifying further
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 13, columns: 9-34
+    File ./examples/if.ml, line 15, columns: 9-34
     Warning:
     	using an if statement to return `true | false` literally
     You wrote:
@@ -494,7 +503,7 @@ let%expect_test _ =
     	returning just the condition (+ some tweaks)
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/if.ml, line 10, columns: 9-34
+    File ./examples/if.ml, line 12, columns: 9-34
     Warning:
     	using an if statement to return `true | false` literally
     You wrote:
