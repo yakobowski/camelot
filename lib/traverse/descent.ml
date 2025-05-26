@@ -139,7 +139,10 @@ module CT = struct
     match desc with
     | Pcty_constr (lid, tys) ->
       iter_loc sub lid; List.iter (sub.typ sub) tys
-    | Pcty_signature x -> sub.class_signature sub x
+    | Pcty_signature x ->
+      Attributes.push_scope ();
+      sub.class_signature sub x;
+      Attributes.pop_scope ();
     | Pcty_arrow (_lab, t, ct) ->
       sub.typ sub t; sub.class_type sub ct
     | Pcty_extension x -> sub.extension sub x
@@ -156,7 +159,9 @@ module CT = struct
     | Pctf_method (_s, _p, _v, t) -> sub.typ sub t
     | Pctf_constraint (t1, t2) ->
       sub.typ sub t1; sub.typ sub t2
-    | Pctf_attribute x -> sub.attribute sub x
+    | Pctf_attribute x ->
+      sub.attribute sub x;
+      Attributes.push_attribute x;
     | Pctf_extension x -> sub.extension sub x
 
   let iter_signature sub {pcsig_self; pcsig_fields} =
@@ -179,7 +184,10 @@ module MT = struct
     match desc with
     | Pmty_ident s -> iter_loc sub s
     | Pmty_alias s -> iter_loc sub s
-    | Pmty_signature sg -> sub.signature sub sg
+    | Pmty_signature sg ->
+      Attributes.push_scope ();
+      sub.signature sub sg;
+      Attributes.pop_scope ();      
     | Pmty_functor (param, mt2) ->
       iter_functor_param sub param;
       sub.module_type sub mt2
@@ -226,7 +234,9 @@ module MT = struct
     | Psig_extension (x, attrs) ->
       sub.attributes sub attrs;
       sub.extension sub x
-    | Psig_attribute x -> sub.attribute sub x
+    | Psig_attribute x ->
+      sub.attribute sub x;
+      Attributes.push_attribute x;
 end
 
 
@@ -238,7 +248,10 @@ module M = struct
     sub.attributes sub attrs;
     match desc with
     | Pmod_ident x -> iter_loc sub x
-    | Pmod_structure str -> sub.structure sub str
+    | Pmod_structure str ->
+      Attributes.push_scope ();
+      sub.structure sub str;
+      Attributes.pop_scope ();
     | Pmod_functor (param, body) ->
       iter_functor_param sub param;
       sub.module_expr sub body
@@ -269,7 +282,9 @@ module M = struct
     | Pstr_include x -> sub.include_declaration sub x
     | Pstr_extension (x, attrs) ->
       sub.attributes sub attrs; sub.extension sub x
-    | Pstr_attribute x -> sub.attribute sub x
+    | Pstr_attribute x ->
+      sub.attribute sub x;
+      Attributes.push_attribute x;
 end
 
 module E = struct
@@ -401,7 +416,9 @@ module CE = struct
     | Pcl_constr (lid, tys) ->
       iter_loc sub lid; List.iter (sub.typ sub) tys
     | Pcl_structure s ->
-      sub.class_structure sub s
+      Attributes.push_scope ();
+      sub.class_structure sub s;
+      Attributes.pop_scope ();
     | Pcl_fun (_lab, e, p, ce) ->
       iter_opt (sub.expr sub) e;
       sub.pat sub p;
@@ -433,7 +450,9 @@ module CE = struct
     | Pcf_constraint (t1, t2) ->
       sub.typ sub t1; sub.typ sub t2
     | Pcf_initializer e -> sub.expr sub e
-    | Pcf_attribute x -> sub.attribute sub x
+    | Pcf_attribute x ->
+      sub.attribute sub x;
+      Attributes.push_attribute x;
     | Pcf_extension x -> sub.extension sub x
 
   let iter_structure sub {pcstr_self; pcstr_fields} =
@@ -450,11 +469,8 @@ module CE = struct
 end
 
 module ST = struct
-  let iter sub =
-    List.iter (sub.structure_item sub)
+  let iter sub l =
+    Attributes.push_scope ();
+    List.iter (sub.structure_item sub) l;
+    Attributes.pop_scope ();
 end
-
-let iterator_sans_attrs = {
-    Ast_iterator.default_iterator with
-    attribute = fun _ _ -> ();
-  }

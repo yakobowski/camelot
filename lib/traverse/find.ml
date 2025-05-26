@@ -17,12 +17,15 @@ let currently_linting : string ref = ref ""
 
 let pass_exprs (store: Hint.hint list ref) (f: string) (expr : Parsetree.expression) : unit =
   let pc = Pctxt.ctxt_of_expr f expr in
-  (* Fetch the lint config *)
-  let expr_checks =
-    Style.Checkers.expr_checks |> Arthur.extract ( Lazy.force cfg ) in
-
-  let checks = expr_checks |> Arthur.refine (Lazy.force cfg) !currently_linting in
-  List.iter (fun check -> check store pc) checks
+  let checks =
+    Style.Checkers.expr_checks
+    (* Fetch the lint config *)
+    |> Arthur.extract ( Lazy.force cfg )
+    |> Arthur.refine (Lazy.force cfg) !currently_linting
+    (* Take local and global attributes into account *)
+    |> Attributes.filter_out_checks expr.pexp_attributes
+  in
+  List.iter (fun (_, check) -> check store pc) checks
 
 
 let set_toplevel : Parsetree.structure_item -> unit = fun i ->
@@ -41,11 +44,14 @@ let pass_structures (store: Hint.hint list ref) (f: string) (structure : Parsetr
   (* Flag the currently linted toplevel function *)
   set_toplevel structure;
   let pc = Pctxt.ctxt_of_structure f structure in
-
-  let struct_checks =
-    Style.Checkers.struct_checks |> Arthur.extract (Lazy.force cfg) in
-  let checks = struct_checks |> Arthur.refine (Lazy.force cfg) !currently_linting in
-  List.iter (fun check -> check store pc) checks
+  let checks =
+    Style.Checkers.struct_checks
+    |> Arthur.extract (Lazy.force cfg)
+    |> Arthur.refine (Lazy.force cfg) !currently_linting
+    (* there is no ideal attribute here. use only the global ones *)
+    |> Attributes.filter_out_checks []
+  in
+  List.iter (fun (_, check) -> check store pc) checks
 
 
 let pass_file (store: Hint.hint list ref) (f: string) (_payload: Parsetree.structure) : unit =

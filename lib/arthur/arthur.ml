@@ -20,7 +20,7 @@ let extract : t -> (string * 'a) list -> (string * 'a) list = fun c rules ->
 
 let files : t -> string list = fun (Arthur(l, _, _)) -> l
 
-let refine : t -> string -> (string * 'a) list -> 'a list = fun config func rules ->
+let refine : t -> string -> (string * 'a) list -> (string * 'a) list = fun config func rules ->
   let open Arthur_parse in
   let config_has_rule (fs: func list) = List.exists (fun (Func (l,_)) -> l = func) fs in
   let rule_for_func f (fs: func list) =
@@ -30,17 +30,16 @@ let refine : t -> string -> (string * 'a) list -> 'a list = fun config func rule
     | None -> failwith "literally impossible"
     | Some l -> l
   in 
-  let all = List.map snd rules in
   match config with
   | Arthur (_, _, fs) ->
     if config_has_rule fs then
       let toDisable = rule_for_func func fs in
       List.filter
         (fun (name, _) -> not (List.exists (fun dis -> dis = name) toDisable ) )
-        rules |> List.map snd
+        rules
     else
       (* If the config has no rule - only globals apply *)
-      all
+      rules
 
 
 let default = Arthur_parse.default

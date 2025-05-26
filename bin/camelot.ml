@@ -37,6 +37,7 @@ let parse_src file =
   try
     let ch = open_in file in
     let lexbuf = Lexing.from_channel ch in
+    Location.init lexbuf file;
     let tree = Parse.implementation lexbuf in
     close_in ch;
     tree

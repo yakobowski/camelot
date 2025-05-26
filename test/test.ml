@@ -684,3 +684,46 @@ let%expect_test _ =
     Consider:
     	using a higher order function like transform
   |}]
+
+(* Run the tests in attributes.ml *)
+let%expect_test _ =
+  let file : string = "./examples/attributes.ml" in
+  let to_lint = to_ast file in
+  lint_and_hint to_lint;
+  [%expect{|
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/attributes.ml, line 32, columns: 12-22
+    Warning:
+    	using `@` to prepend an element to a list
+    You wrote:
+    	 ["w7"] @ t
+    Consider:
+    	using `::` instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/attributes.ml, line 20, columns: 10-20
+    Warning:
+    	using `@` to prepend an element to a list
+    You wrote:
+    	 ["w5"] @ t
+    Consider:
+    	using `::` instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/attributes.ml, line 17, columns: 17-29
+    Warning:
+    	using `@` to prepend an element to a list
+    You wrote:
+    	 (["w4"] @ t)
+    Consider:
+    	using `::` instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/attributes.ml, line 11, columns: 10-20
+    Warning:
+    	using `@` to prepend an element to a list
+    You wrote:
+    	 ["w2"] @ t
+    Consider:
+    	using `::` instead
+  |}]
