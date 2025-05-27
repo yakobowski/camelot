@@ -13,27 +13,24 @@ jobs:
           - macos-latest
           - ubuntu-latest
         ocaml-version:
-          - 4.14.0
           - 4.14.2
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: avsm/setup-ocaml@v1
+        uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
-
-      - name: Set git user
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions-bot@users.noreply.github.com
+          ocaml-compiler: ${{ matrix.ocaml-version }}
 
       - name: Install Dependencies
         run: opam install . --deps-only --with-test --with-doc
 
-      - name: Build & Test
-        run: opam exec dune build @install @runtest @doc
+      - name: Build
+        run: opam exec -- dune build @install @doc
+
+      - name: Test
+        run: opam exec -- dune runtest
