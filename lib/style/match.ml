@@ -88,7 +88,6 @@ end
 (** --------------------- Checks rules: match _ with | x :: [] ---------------------------------- *)
 module MatchListVerbose : EXPRCHECK = struct
   type ctxt = Parsetree.expression_desc Pctxt.pctxt
-  let fix = "expressing this match case more compactly"
   let violation = "using an overly complex match clause"
 
   (* Predicate for checking that a match case looks like x :: [] *) 

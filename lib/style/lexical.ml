@@ -6,8 +6,6 @@ module LineLength : LEXICALCHECK = struct
 
   type ctxt = Pctxt.file Pctxt.pctxt 
 
-  let fix = "indenting to avoid exceeding the line limit"
-
   let violation = "exceeding the 80 character line limit. Only showing (1) such violation of this kind, although there may be others - fix this and re-run the linter to find them."
 
   let check st (L {source; pattern = Pctxt.F chan}: ctxt) =

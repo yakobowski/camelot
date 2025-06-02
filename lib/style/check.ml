@@ -6,9 +6,6 @@ module type CHECK = sig
   (** The internal CHECK type - represents the kind of context a checker will need *)
   type ctxt
 
-  (** The fix for this check *)
-  val fix : Hint.fix
-
   (** The violation associated with this check *)
   val violation : Hint.violation
 
