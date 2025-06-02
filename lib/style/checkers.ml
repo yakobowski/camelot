@@ -22,6 +22,7 @@ let expr_checks = [
 ; Verbose.NestedMatch.name
 ; Verbose.RedundantOr.name
 ; Verbose.RedundantAnd.name
+; Verbose.SuccessiveStringConcat.name
 ]
 
 (** Top-level structure checks *)

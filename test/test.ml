@@ -176,6 +176,96 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 137, columns: 13-25
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 s2 ^ (s3 ^ s4)
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 137, columns: 8-25
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 s1 ^ (s2 ^ (s3 ^ s4))
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 129, columns: 8-22
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 s1 ^ (s2 ^ s3)
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 125, columns: 8-22
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 (s1 ^ s2) ^ s3
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 115, columns: 14-33
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 "b" ^ ("c" ^ "d")
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 115, columns: 8-33
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 "a" ^ ("b" ^ ("c" ^ "d"))
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 107, columns: 14-29
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 "b" ^ ("c" ^ "d")
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 107, columns: 8-29
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 "a" ^ ("b" ^ ("c" ^ "d"))
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 99, columns: 8-25
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 "a" ^ ("b" ^ "c")
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 95, columns: 8-25
+    Warning:
+	successive string concatenations using the `^` operator
+    You wrote:
+	 ("a" ^ "b") ^ "c"
+    Consider:
+	use Printf.sprintf instead
+
+    (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 87, columns: 8-57
     Warning:
     	Usage of the `&&` is redundant
