@@ -298,3 +298,18 @@ module IfEmptyThenElse : EXPRCHECK = struct
     end
   let name = "IfEmptyThenElse", check
 end
+
+(** ------------ Checks rules: "foo" ^ "bar" ^ "baz" ----------------------- *)
+module SuccessiveStringConcat : EXPRCHECK = struct
+  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  let fix = "use Printf.sprintf instead"
+  let violation = "successive string concatenations using the `^` operator"
+
+  let check st (E {location; source; pattern} : ctxt) =
+    match pattern with
+    | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
+        if is_concat_application lhs_expr.pexp_desc || is_concat_application rhs_expr.pexp_desc then
+          st := Hint.mk_hint location source fix violation :: !st
+    | _ -> ()
+  let name = "SuccessiveStringConcat", check
+end
