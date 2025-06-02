@@ -193,7 +193,8 @@ let%expect_test _ =
       ((if x > 5 then "val:" ^ (string_of_int x) else "small") ^
          (" status" ^ " end"))
     Consider:
-    	Use Printf.sprintf "Value is %s status end" (if x > 5 then "val:" ^ (string_of_int x) else "small")
+    	Use Printf.sprintf "Value is %s status end"
+      (if x > 5 then "val:" ^ (string_of_int x) else "small")
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 125, columns: 47-159
@@ -207,7 +208,8 @@ let%expect_test _ =
                (" call: " ^
                   ((List.hd ["val:" ^ (string_of_int 123)]) ^ " suffix")))))
     Consider:
-    	Use Printf.sprintf "prefix: %s int: %d call: %s suffix" str (num) (List.hd ["val:" ^ (string_of_int 123)])
+    	Use Printf.sprintf "prefix: %s int: %d call: %s suffix" str num
+      (List.hd ["val:" ^ (string_of_int 123)])
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 124, columns: 21-74
@@ -216,7 +218,7 @@ let%expect_test _ =
     You wrote:
     	 "value: " ^ ((string_of_int i) ^ (" units" ^ " available"))
     Consider:
-    	Use Printf.sprintf "value: %d units available" (i)
+    	Use Printf.sprintf "value: %d units available" i
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 123, columns: 26-79
@@ -225,7 +227,7 @@ let%expect_test _ =
     You wrote:
     	 "count: " ^ ((Int.to_string count) ^ (" items" ^ " total"))
     Consider:
-    	Use Printf.sprintf "count: %d items total" (count)
+    	Use Printf.sprintf "count: %d items total" count
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 120, columns: 8-72

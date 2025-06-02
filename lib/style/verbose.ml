@@ -300,16 +300,14 @@ module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
 
   type concat_part =
     | Literal of string
-    | Identifier of string
-    | IntToStringArg of Parsetree.expression (* Store the argument expression *)
-    | OtherExpression of Parsetree.expression_desc (* Store the expression description *)
+    | IntToStringArg of Parsetree.expression
+    | OtherExpression of Parsetree.expression_desc
 
   let rec collect_concat_parts_desc (expr_desc : Parsetree.expression_desc) : concat_part list =
     match expr_desc with
     | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
         collect_concat_parts lhs_expr @ collect_concat_parts rhs_expr
     | Pexp_constant (Pconst_string (s, _, None)) -> [Literal s]
-    | Pexp_ident { txt = Lident name; _ } -> [Identifier name]
     | Pexp_apply (func_expr, [(Asttypes.Nolabel, arg_expr)]) -> (
         match func_expr.pexp_desc with
         | Pexp_ident {txt = Ldot (Lident "Int", "to_string"); _} -> [IntToStringArg arg_expr]
@@ -320,32 +318,37 @@ module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
   and collect_concat_parts (expr : Parsetree.expression) : concat_part list =
     collect_concat_parts_desc expr.pexp_desc
 
+  let build_fix_string format_string args =
+    (* exp for Printf.sprintf *)
+    let printf = Location.mknoloc (Option.get (Longident.unflatten ["Printf"; "sprintf"])) in
+    (* all the arguments for sprintf *)
+    let args = Ast_helper.(Exp.constant (Const.string format_string)) :: args in
+    (* sprintf applied *)
+    let app = Ast_helper.Exp.apply (Ast_helper.Exp.ident printf) (List.map (fun arg -> (Asttypes.Nolabel, arg)) args) in
+    (* convert to string *)
+    Printf.sprintf "Use %s" (Pprintast.string_of_expression app)
+
   let check st (Pctxt.E {location; source; pattern}) = (* Explicitly qualify E with Pctxt *)
     match pattern with
     | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
         if is_concat_application lhs_expr.pexp_desc || is_concat_application rhs_expr.pexp_desc then
           let concat = collect_concat_parts_desc pattern in
           if List.length concat > 3 then
-            let formats, args =
+            let format, args =
               List.fold_right (fun arg (format, args) ->
                 match arg with
                 | Literal s ->
                   (* Escape '%' in literals for the format string *)
                   let escaped_s = String.split_on_char '%' s |> String.concat "%%" in
-                  (escaped_s :: format, args)
-                | Identifier name ->
-                  ("%s" :: format, name :: args)
-                | IntToStringArg arg_expr ->
-                  let arg_expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression arg_expr) in
-                  ("%d" :: format, arg_expr_str :: args)
+                  (escaped_s ^ format, args)
+                | IntToStringArg e ->
+                  ("%d" ^ format, e :: args)
                 | OtherExpression desc ->
                   let expr = Ast_helper.Exp.mk desc in
-                  let expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression expr) in
-                  ("%s" :: format, expr_str :: args)
-              ) concat ([], [])
+                  ("%s" ^ format, expr :: args)
+              ) concat ("", [])
             in
-            let format_string = String.concat "" formats in
-            let fix = Printf.sprintf "Use Printf.sprintf %S %s" format_string (String.concat " " args) in
+            let fix = build_fix_string format args in
             st := Hint.mk_hint location source fix violation :: !st
     | _ -> ()
   let name = "SuccessiveStringConcat"
