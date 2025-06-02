@@ -299,77 +299,49 @@ module IfEmptyThenElse : EXPRCHECK = struct
   let name = "IfEmptyThenElse", check
 end
 
-type concat_part =
-  | Literal of string
-  | Identifier of string
-  | OtherExpression of Parsetree.expression (* Store the whole expression *)
-
-let rec collect_concat_parts (expr : Parsetree.expression) : concat_part list =
-  match expr.pexp_desc with
-  | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
-      collect_concat_parts lhs_expr @ collect_concat_parts rhs_expr
-  | Pexp_constant (Pconst_string (s, _, None)) -> [Literal s]
-  | Pexp_ident { txt = Lident name; _ } -> [Identifier name]
-  | _ -> [OtherExpression expr] (* Store the expression itself *)
-
-(* Utility function to check if an expression is a string constant *)
-let is_string_constant (expr_desc : Parsetree.expression_desc) : bool =
-  match expr_desc with
-  | Pexp_constant (Pconst_string _) -> true
-  | _ -> false
-
-(* Utility function to check if an expression is an identifier *)
-let is_identifier (expr_desc : Parsetree.expression_desc) : bool =
-  match expr_desc with
-  | Pexp_ident { txt = Lident _; _ } -> true
-  | _ -> false
 
 (** ------------ Checks rules: "foo" ^ "bar" ^ "baz" ----------------------- *)
 module SuccessiveStringConcat : EXPRCHECK = struct
   type ctxt = Parsetree.expression_desc Pctxt.pctxt
-  (* let fix = "use Printf.sprintf instead" (* This line is removed *) *)
   let violation = "successive string concatenations using the `^` operator"
+
+  type concat_part =
+    | Literal of string
+    | Identifier of string
+    | OtherExpression of Parsetree.expression_desc (* Store the whole expression *)
+
+  let rec collect_concat_parts_desc (expr_desc : Parsetree.expression_desc) : concat_part list =
+    match expr_desc with
+    | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
+        collect_concat_parts lhs_expr @ collect_concat_parts rhs_expr
+    | Pexp_constant (Pconst_string (s, _, None)) -> [Literal s]
+    | Pexp_ident { txt = Lident name; _ } -> [Identifier name]
+    | _ -> [OtherExpression expr_desc] (* Store the expression itself *)
+  and collect_concat_parts (expr : Parsetree.expression) : concat_part list =
+    collect_concat_parts_desc expr.pexp_desc
 
   let check st (Pctxt.E {location; source; pattern}) = (* Explicitly qualify E with Pctxt *)
     match pattern with
     | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
         if is_concat_application lhs_expr.pexp_desc || is_concat_application rhs_expr.pexp_desc then
-          (* Reconstruct expression for collect_concat_parts *)
-          let expr_loc = Warnloc.loc_of_warn_loc location in
-          let current_expr = Astutils.mk_expr pattern expr_loc in
-          let parts = collect_concat_parts current_expr in
-          let format_string_parts = ref [] in
-          let arg_strings = ref [] in
-
-          List.iter (function
-            | Literal s ->
-              (* Escape '%' in literals for the format string *)
-              let escaped_s = String.split_on_char '%' s |> String.concat "%%" in
-              format_string_parts := escaped_s :: !format_string_parts
-            | Identifier name ->
-              format_string_parts := "%s" :: !format_string_parts;
-              arg_strings := name :: !arg_strings
-            | OtherExpression expr ->
-              format_string_parts := "%s" :: !format_string_parts;
-              (* Attempt to pretty-print the expression.
-                 Astutils.string_of_expr uses Pprintast.string_of_expression.
-              *)
-              try
-                let expr_str = Astutils.string_of_expr expr in
-                arg_strings := expr_str :: !arg_strings
-              with _ -> arg_strings := "(<expression>)" :: !arg_strings (* Fallback *)
-          ) parts;
-
-          let final_format_string = String.concat "" (List.rev !format_string_parts) in
-          let final_args_string = String.concat " " (List.rev !arg_strings) in
-
-          let new_fix =
-            if List.length !arg_strings > 0 then
-              Printf.sprintf "Use Printf.sprintf \"%s\" %s" final_format_string final_args_string
-            else
-              Printf.sprintf "Use Printf.sprintf \"%s\"" final_format_string
+          let formats, args =
+            List.fold_right (fun arg (format, args) ->
+              match arg with
+              | Literal s ->
+                (* Escape '%' in literals for the format string *)
+                let escaped_s = String.split_on_char '%' s |> String.concat "%%" in
+                (escaped_s :: format, args)
+              | Identifier name ->
+                ("%s" :: format, name :: args)
+              | OtherExpression desc ->
+                let expr = Ast_helper.Exp.mk desc in
+                let expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression expr) in
+                ("%s" :: format, expr_str :: args)
+            ) (collect_concat_parts_desc pattern) ([], [])
           in
-          st := Hint.mk_hint location source new_fix violation :: !st
+          let format_string = String.concat "" (formats) in
+          let fix = Printf.sprintf "Use Printf.sprintf %S %s" format_string (String.concat " " args) in
+          st := Hint.mk_hint location source fix violation :: !st
     | _ -> ()
   let name = "SuccessiveStringConcat", check
 end

@@ -139,6 +139,9 @@ let _ = s1 ^ (s2 ^ s3)
    (2 warnings total) *)
 let _ = s1 ^ s2 ^ s3 ^ s4
 
+(* Complex case testing the suggested fix *)
+let _ = "foo%d " ^ s1 ^ " bar " ^ (f v2) ^ " baz " ^ (g (h v3)) ^ " qux"
+
 
 (* --- Cases that should NOT trigger the rule --- *)
 

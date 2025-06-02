@@ -176,13 +176,58 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 143, columns: 43-72
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 " baz " ^ ((g (h v3)) ^ " qux")
+    Consider:
+    	Use Printf.sprintf " baz %s qux" (g (h v3))
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 143, columns: 34-72
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 (f v2) ^ (" baz " ^ ((g (h v3)) ^ " qux"))
+    Consider:
+    	Use Printf.sprintf "%s baz %s qux" (f v2) (g (h v3))
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 143, columns: 24-72
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 " bar " ^ ((f v2) ^ (" baz " ^ ((g (h v3)) ^ " qux")))
+    Consider:
+    	Use Printf.sprintf " bar %s baz %s qux" (f v2) (g (h v3))
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 143, columns: 19-72
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 s1 ^ (" bar " ^ ((f v2) ^ (" baz " ^ ((g (h v3)) ^ " qux"))))
+    Consider:
+    	Use Printf.sprintf "%s bar %s baz %s qux" s1 (f v2) (g (h v3))
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 143, columns: 8-72
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 "foo%d " ^ (s1 ^ (" bar " ^ ((f v2) ^ (" baz " ^ ((g (h v3)) ^ " qux")))))
+    Consider:
+    	Use Printf.sprintf "foo%%d %s bar %s baz %s qux" s1 (f v2) (g (h v3))
+
+    (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 140, columns: 13-25
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
     	 s2 ^ (s3 ^ s4)
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "%s%s%s" s2 s3 s4
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 140, columns: 8-25
@@ -191,7 +236,7 @@ let%expect_test _ =
     You wrote:
     	 s1 ^ (s2 ^ (s3 ^ s4))
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "%s%s%s%s" s1 s2 s3 s4
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 132, columns: 8-22
@@ -200,7 +245,7 @@ let%expect_test _ =
     You wrote:
     	 s1 ^ (s2 ^ s3)
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "%s%s%s" s1 s2 s3
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 128, columns: 8-22
@@ -209,7 +254,7 @@ let%expect_test _ =
     You wrote:
     	 (s1 ^ s2) ^ s3
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "%s%s%s" s1 s2 s3
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 118, columns: 14-33
@@ -218,7 +263,7 @@ let%expect_test _ =
     You wrote:
     	 "b" ^ ("c" ^ "d")
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "bcd"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 118, columns: 8-33
@@ -227,7 +272,7 @@ let%expect_test _ =
     You wrote:
     	 "a" ^ ("b" ^ ("c" ^ "d"))
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "abcd"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 110, columns: 14-29
@@ -236,7 +281,7 @@ let%expect_test _ =
     You wrote:
     	 "b" ^ ("c" ^ "d")
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "bcd"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 110, columns: 8-29
@@ -245,7 +290,7 @@ let%expect_test _ =
     You wrote:
     	 "a" ^ ("b" ^ ("c" ^ "d"))
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "abcd"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 102, columns: 8-25
@@ -254,7 +299,7 @@ let%expect_test _ =
     You wrote:
     	 "a" ^ ("b" ^ "c")
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "abc"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 98, columns: 8-25
@@ -263,7 +308,7 @@ let%expect_test _ =
     You wrote:
     	 ("a" ^ "b") ^ "c"
     Consider:
-    	use Printf.sprintf instead
+    	Use Printf.sprintf "abc"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 90, columns: 8-57
