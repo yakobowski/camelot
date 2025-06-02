@@ -276,7 +276,6 @@ module IfEmptyThenElse : EXPRCHECK = struct
   let name = "IfEmptyThenElse"
 end
 
-
 (** ------------ Checks rules: "foo" ^ "bar" ^ "baz" ----------------------- *)
 module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
   type t = Parsetree.expression_desc

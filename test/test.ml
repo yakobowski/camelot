@@ -889,3 +889,317 @@ let%expect_test _ =
     Consider:
     	using `::` instead
   |}]
+
+(* Run the tests in record_update.ml *)
+let%expect_test _ =
+  let file : string = "./examples/record.ml" in
+  let to_lint = to_ast file in
+  lint_and_hint to_lint;
+  [%expect{|
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 96, columns: 26-82
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base2.f3) }
+    Consider:
+    	{ r2_base1 with f3 = r2_base2.f3 }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 89, columns: 29-123
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 {
+      a = ((get_base_record ()).a);
+      b = ((get_base_record ()).b);
+      c = "new_c_func";
+      d = "new_d_func"
+    }
+    Consider:
+    	{ get_base_record () with c = "new_c_func"; d = "new_d_func" }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 83, columns: 34-116
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 {
+      c = "new_c_ordered";
+      a = (base_record.a);
+      d = "new_d_ordered";
+      b = (base_record.b)
+    }
+    Consider:
+    	{ base_record with c = "new_c_ordered"; d = "new_d_ordered" }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 79, columns: 46-103
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 { a = (base_record.a); b = 10; c = "c"; d = (base_record.d) }
+    Consider:
+    	{ base_record with b = 10; c = "c" }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 75, columns: 31-104
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 { new_a = (base_record.a); new_b = 10; new_c = "c"; new_d = (base_record.d) }
+    Consider:
+    	{ base_record with new_b = 10; new_c = "c" }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, lines 28-33, columns: 25-1
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 {
+      a = (base_record.a);
+      b = (base_record.b);
+      c = (String.uppercase_ascii "new_c_complex");
+      d = (Printf.sprintf "%s_complex" "new_d")
+    }
+    Consider:
+    	{ base_record with c = String.uppercase_ascii "new_c_complex"; d = Printf.sprintf "%s_complex" "new_d" }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 24, columns: 28-106
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 {
+      a = (base_record.a);
+      b = (base_record.b);
+      c = (base_record.c);
+      d = (base_record.d)
+    }
+    Consider:
+    	base_record
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 20, columns: 14-67
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 { x = (base_s.x); y = (base_s.y); z = (base_s.z); w = 500 }
+    Consider:
+    	{ base_s with w = 500 }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 16, columns: 19-85
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 { a = (base_record.a); b = (base_record.b); c = "new_c"; d = "new_d" }
+    Consider:
+    	{ base_record with c = "new_c"; d = "new_d" }
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 96, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let new_r2_multi_source = { f1 = r2_base1.f1; f2 = r2_base1.f2; f3 = r2_base2.f3 }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 91, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* Multiple different records being updated from, but one of them multiple times *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 89, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let new_record_func_source = { a = (get_base_record ()).a; b = (get_base_record ()).b; c = "new_c_func"; d = "new_d_func" }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 88, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* EXPECT: Warning, Fix: { (get_base_record ()) with c = "new_c_func"; d = "new_d_func" } *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 83, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let new_record_fields_reordered = { c = "new_c_ordered"; a = base_record.a; d = "new_d_ordered"; b = base_record.b }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 82, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* EXPECT: Warning, Fix: { base_record with c = "new_c_ordered"; d = "new_d_ordered" } (order in 'with' might vary but should be "; " separated) *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 79, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let warn_different_target_names_same_source = { a = base_record.a; b = 10; c = "c"; d = base_record.d }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 75, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let no_warn_4_actually_warns = { new_a = base_record.a; new_b = 10; new_c = "c"; new_d = base_record.d }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 71, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	    The values for 'a' and 'd' in the fix are taken implicitly from base_record. This is correct.
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 70, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	    However, the original record was { a = base_record.a; b = 10; c = "c"; d = base_record.d }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 66, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	    If `a = base_record.a` and `d = base_record.d`, then `base_record` is used twice.
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 64, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	    If new_a = r.a and new_d = r.d, and these are the only two from r, then it's {r with new_b = 10; new_c = "c"}.
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 62, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	    Let's refine: the current rule counts source expressions. So if r.a and r.d are used, that's two uses of 'r'.
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 61, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* EXPECT: No Warning (or if it warns, it's because 'a = base_record.a' is one copied field, and 'd = base_record.d' is another, making two - this depends on how "copied" is strictly defined regarding field names)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 59, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* 10. Case where a field is copied but to a different field name (should not count as "copied" for this rule) *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 57, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let already_updated_self_ref_multiple = { base_record with a = base_record.a + 1; b = base_record.b + 2 }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 54, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* This is a valid use of update syntax and should not be confused with verbose copying *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 53, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* 9. Record update syntax where the 'with' part itself refers to the base record's field *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 47, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let no_warn_3 = { a = base_record.a; b = other_record.b; c = "mixed"; d = "source" }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 39, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let no_warn_1 = { a = base_record.a; b = 3; c = "new_c_prime"; d = "new_d_prime" }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 27, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 (* EXPECT: Warning, Fix: { base_record with c = String.uppercase_ascii "new_c_complex"; d = Printf.sprintf "%s_complex" "new_d" } *)
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 24, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let new_record_all_copied = { a = base_record.a; b = base_record.b; c = base_record.c; d = base_record.d }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, line 16, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let new_record_1 = { a = base_record.a; b = base_record.b; c = "new_c"; d = "new_d" }
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit |}]
