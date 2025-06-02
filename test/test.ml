@@ -176,7 +176,7 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 143, columns: 8-72
+    File ./examples/verbose.ml, line 118, columns: 8-72
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
@@ -185,67 +185,76 @@ let%expect_test _ =
     	Use Printf.sprintf "foo%%d %s bar %s baz %s qux" s1 (f v2) (g (h v3))
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 140, columns: 8-25
+    File ./examples/verbose.ml, line 113, columns: 8-36
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 s1 ^ (s2 ^ (s3 ^ s4))
+    	 s1 ^ (s2 ^ (s3 ^ (s4 ^ s5)))
     Consider:
-    	Use Printf.sprintf "%s%s%s%s" s1 s2 s3 s4
+    	Use Printf.sprintf "%s%s%s%s%s" s1 s2 s3 s4 s5
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 132, columns: 8-22
+    File ./examples/verbose.ml, line 112, columns: 8-30
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 s1 ^ (s2 ^ s3)
+    	 s1 ^ (s2 ^ (s3 ^ (s4 ^ s5)))
     Consider:
-    	Use Printf.sprintf "%s%s%s" s1 s2 s3
+    	Use Printf.sprintf "%s%s%s%s%s" s1 s2 s3 s4 s5
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 128, columns: 8-22
+    File ./examples/verbose.ml, line 111, columns: 8-32
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 (s1 ^ s2) ^ s3
+    	 s1 ^ ((s2 ^ (s3 ^ s4)) ^ s5)
     Consider:
-    	Use Printf.sprintf "%s%s%s" s1 s2 s3
+    	Use Printf.sprintf "%s%s%s%s%s" s1 s2 s3 s4 s5
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 118, columns: 8-33
+    File ./examples/verbose.ml, line 110, columns: 8-34
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 "a" ^ ("b" ^ ("c" ^ "d"))
+    	 ((s1 ^ s2) ^ (s3 ^ s4)) ^ s5
     Consider:
-    	Use Printf.sprintf "abcd"
+    	Use Printf.sprintf "%s%s%s%s%s" s1 s2 s3 s4 s5
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 110, columns: 8-29
+    File ./examples/verbose.ml, line 100, columns: 8-41
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 "a" ^ ("b" ^ ("c" ^ "d"))
+    	 ("a" ^ "b") ^ ("c" ^ ("d" ^ "e"))
     Consider:
-    	Use Printf.sprintf "abcd"
+    	Use Printf.sprintf "abcde"
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 102, columns: 8-25
+    File ./examples/verbose.ml, line 99, columns: 8-41
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 "a" ^ ("b" ^ "c")
+    	 "a" ^ ("b" ^ ("c" ^ ("d" ^ "e")))
     Consider:
-    	Use Printf.sprintf "abc"
+    	Use Printf.sprintf "abcde"
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 98, columns: 8-25
+    File ./examples/verbose.ml, line 98, columns: 8-35
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 ("a" ^ "b") ^ "c"
+    	 "a" ^ ("b" ^ ("c" ^ ("d" ^ "e")))
     Consider:
-    	Use Printf.sprintf "abc"
+    	Use Printf.sprintf "abcde"
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 97, columns: 8-41
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 ((("a" ^ "b") ^ "c") ^ "d") ^ "e"
+    Consider:
+    	Use Printf.sprintf "abcde"
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 90, columns: 8-57

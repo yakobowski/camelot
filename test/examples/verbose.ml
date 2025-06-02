@@ -93,68 +93,48 @@ let z = (x = TConstr 3 && x = TConstr 4 && x = TConstr 3)
 (* ----------------------- SuccessiveStringConcat -------------------------- *)
 (* New logic: (LHS^RHS) flagged if is_concat_application(LHS/RHS) *)
 
-(* Test: ("a" ^ "b") ^ "c" *)
-(* Expect: 1 warn on ("a"^"b")^"c". No warn on "a"^"b". *)
-let _ = ("a" ^ "b") ^ "c"
-
-(* Test: "a" ^ ("b" ^ "c") *)
-(* Expect: 1 warn on "a"^("b"^"c"). No warn on "b"^"c". *)
-let _ = "a" ^ ("b" ^ "c")
-
-(* Test: "a" ^ "b" ^ "c" ^ "d" (parsed ("a"^"b")^"c")^"d" *)
-(* Expect:
-   - Warn for (("a"^"b")^"c")^"d"
-   - No warn for ("a"^"b")^"c" (redundant)
-   - No warn for "a"^"b" (too small)
-   (1 warning total) *)
-let _ = "a" ^ "b" ^ "c" ^ "d"
-
-(* Test: "a" ^ ("b" ^ ("c" ^ "d")) (explicit right-assoc) *)
-(* Expect:
-   - Warn for "a" ^ ("b"^("c"^"d"))
-   - No Warn for "b" ^ ("c"^"d") (redundant)
-   - No warn for "c"^"d" (too small)
-   (1 warning total) *)
-let _ = "a" ^ ("b" ^ ("c" ^ "d"))
+(* Expect: 1 warn on the entire expression. No warning on inner expressions *)
+let _ = ((("a" ^ "b") ^ "c") ^ "d") ^ "e"
+let _ = "a" ^ "b" ^ "c" ^ "d" ^ "e"
+let _ = "a" ^ ("b" ^ ("c" ^ ("d" ^ "e")))
+let _ = ("a" ^ "b") ^ ("c" ^ ("d" ^ "e"))
 
 
 let s1 = "hello"
 let s2 = " "
 let s3 = "world"
 let s4 = "!"
+let s5 = "!!"
 
-(* Test with identifiers: (s1 ^ s2) ^ s3 *)
-(* Expect: 1 warn on (s1^s2)^s3. No warn on s1^s2. *)
-let _ = (s1 ^ s2) ^ s3
+(* Expect: 1 warn on the entire expression. No warning on inner expressions *)
+let _ = ((s1 ^ s2) ^ s3 ^ s4) ^ s5
+let _ = s1 ^ (s2 ^ s3 ^ s4) ^ s5
+let _ = s1 ^ s2 ^ s3 ^ s4 ^ s5
+let _ = s1 ^ (s2 ^ (s3 ^ (s4 ^ s5)))
 
-(* Test with identifiers: s1 ^ (s2 ^ s3) *)
-(* Expect: 1 warn on s1^(s2^s3). No warn on s2^s3. *)
-let _ = s1 ^ (s2 ^ s3)
 
-(* Test with identifiers: s1 ^ s2 ^ s3 ^ s4 (parsed (s1^s2)^s3)^s4) *)
-(* Expect:
-   - Warn for ((s1^s2)^s3)^s4
-   - No warn for (s1^s2)^s3 (redundant)
-   - No warn for s1^s2 (too small)
-   (1 warnings total) *)
-let _ = s1 ^ s2 ^ s3 ^ s4
-
-(* Complex case testing the suggested fix *)
-let _ = "foo%d " ^ s1 ^ " bar " ^ (f v2) ^ " baz " ^ (g (h v3)) ^ " qux"
+let f x = x
+let h x = x
+let g x = x
+(* Complex case testing the suggested fix message *)
+let _ = "foo%d " ^ s1 ^ " bar " ^ (f s2) ^ " baz " ^ (g (h s3)) ^ " qux"
 
 
 (* --- Cases that should NOT trigger the rule --- *)
+(* No warning (too small) *)
+let _ = s1 ^ (s2 ^ s3)
+let _ = s1 ^ s2 ^ s3
+let _ = (s1 ^ s2) ^ s3
 
-(* Simple concatenation: "a" ^ "b" *)
-(* Expect: No warning *)
-let _ = "a" ^ "b"
+let _ = ("a" ^ "b") ^ "c"
+let _ = "a" ^ "b" ^ "c"
+let _ = "a" ^ ("b" ^ "c")
+
 
 (* Not string concatenation *)
-let _ = 1 + 2 + 3
+let _ = 1 + 2 + 3 + 4 + 5
+
 
 (* Function call, not an operator *)
 let my_concat x y = x ^ y
-let _ = my_concat "a" "b"
-
-(* Single operand (edge case for the checker, should not be flagged) *)
-let _ = "a"
+let _ = my_concat (my_concat (my_concat "a" "b") (my_concat "c" "d")) "e"

@@ -317,24 +317,26 @@ module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
     match pattern with
     | Pexp_apply (op, [(_, lhs_expr); (_, rhs_expr)]) when op =~ "^" ->
         if is_concat_application lhs_expr.pexp_desc || is_concat_application rhs_expr.pexp_desc then
-          let formats, args =
-            List.fold_right (fun arg (format, args) ->
-              match arg with
-              | Literal s ->
-                (* Escape '%' in literals for the format string *)
-                let escaped_s = String.split_on_char '%' s |> String.concat "%%" in
-                (escaped_s :: format, args)
-              | Identifier name ->
-                ("%s" :: format, name :: args)
-              | OtherExpression desc ->
-                let expr = Ast_helper.Exp.mk desc in
-                let expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression expr) in
-                ("%s" :: format, expr_str :: args)
-            ) (collect_concat_parts_desc pattern) ([], [])
-          in
-          let format_string = String.concat "" (formats) in
-          let fix = Printf.sprintf "Use Printf.sprintf %S %s" format_string (String.concat " " args) in
-          st := Hint.mk_hint location source fix violation :: !st
+          let concat = collect_concat_parts_desc pattern in
+          if List.length concat > 3 then
+            let formats, args =
+              List.fold_right (fun arg (format, args) ->
+                match arg with
+                | Literal s ->
+                  (* Escape '%' in literals for the format string *)
+                  let escaped_s = String.split_on_char '%' s |> String.concat "%%" in
+                  (escaped_s :: format, args)
+                | Identifier name ->
+                  ("%s" :: format, name :: args)
+                | OtherExpression desc ->
+                  let expr = Ast_helper.Exp.mk desc in
+                  let expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression expr) in
+                  ("%s" :: format, expr_str :: args)
+              ) concat ([], [])
+            in
+            let format_string = String.concat "" (formats) in
+            let fix = Printf.sprintf "Use Printf.sprintf %S %s" format_string (String.concat " " args) in
+            st := Hint.mk_hint location source fix violation :: !st
     | _ -> ()
   let name = "SuccessiveStringConcat"
 end
