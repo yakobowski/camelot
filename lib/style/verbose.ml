@@ -1,14 +1,11 @@
 open Canonical
+open Canonical.Pctxt
 open Utils
 open Astutils
 open Check
 
 (** ----------------------- Checks rules: [_] \@ _ ---------------------------- *)
-module LitPrepend : EXPRCHECKCALLBACK = struct
-  (* List of nodes that should be ignored when checking for this rule.
-     We want to avoid warnings on code such as `x @ [v] @ y`, which is nicely
-     symmetric when dealing with e.g. binary trees. *)
-  let ignore_nodes = ref []
+module LitPrepend : Check_ignore.EXPRCHECKIGNORE = struct
 
   (* Find all expressions directly under a @, to mark them as being skipped. *)
   let rec list_concat_nodes (exp: Parsetree.expression) =
@@ -21,65 +18,45 @@ module LitPrepend : EXPRCHECKCALLBACK = struct
       else []
     | _ -> []
 
-  (* Mark nodes under @ as being skipped *)
-  let pre_callback e =
-    let to_skip = list_concat_nodes e in
-    (* Push on the stack if some nodes must be skipped.
-       Push ourselves as the first element of the pair to
-       make the post callback easier to write. *)
-    if to_skip <> [] then
-      ignore_nodes := (e, to_skip) :: !ignore_nodes
+  let children_to_ignore e = list_concat_nodes_desc e
 
-  let post_callback e =
-    match !ignore_nodes with
-    | [] -> ()
-    | (e', _) :: rest ->
-      (* Pop the top of the stack if it has been pushed by us. *)
-      if e == e' then
-        ignore_nodes := rest
+  type t = Parsetree.expression_desc
 
-  let callback = { pre_callback; post_callback }        
-
-  (* Should [e] be ignored while testing this rule? *)
-  let should_be_ignored e =
-    List.exists (fun (_, l) -> List.exists ((==) e) l) !ignore_nodes
-
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
   let fix = "using `::` instead"
   let violation = "using `@` to prepend an element to a list"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (application, [(_, lop); _]) ->
-        if application =~ "@" && is_singleton_list lop && not (should_be_ignored pattern) then
+        if application =~ "@" && is_singleton_list lop then
           let raw = IOUtils.code_at_loc location source in
           st := Hint.mk_hint location raw fix violation :: !st
       | _ -> ()
     end
-  let name = "LitPrepend", check
+  let name = "LitPrepend"
 end
 
 
 (** ----------------------- Checks rules: fst/snd t -------------------------- *)
 module TupleProj : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "using a let pattern match statement instead"
   let violation = "using fst / snd to project values out of a tuple"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (application, [_]) ->
         if application =~ "fst" || application =~ "snd" then
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "TupleProj", check
+  let name = "TupleProj"
 end
 
 (** ----------------------- Checks rules: Nesting if >= 3 levels ------------- *)
 module NestedIf : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "using let statements or helper methods / rethinking logic"
   let violation = "using nested if statements more than three layers deep"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     let rec find_nesting (p: Parsetree.expression_desc) depth= 
       depth = 0 ||
       begin match p with 
@@ -91,15 +68,15 @@ module NestedIf : EXPRCHECK = struct
       end 
     in 
     if find_nesting pattern 4 then st := Hint.mk_hint location source fix violation :: !st
-  let name = "NestedIf", check
+  let name = "NestedIf"
 end
 
 (** -------------------- Checks rules: Nesting match >= 3 levels ------------- *)
 module NestedMatch : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "using let statements or helper methods / rethinking logic"
   let violation = "using nested match statements three or more layers deep"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       (* Layer one *)
       | Pexp_match (_, cs) ->
@@ -120,15 +97,15 @@ module NestedMatch : EXPRCHECK = struct
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "NestedMatch", check
+  let name = "NestedMatch"
 end
 
 (** ------------ Checks rules: if _ then/else true | false  ------------------ *)
 module IfReturnsLit : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "returning just the condition (+ some tweaks)"
   let violation = "using an if statement to return `true | false` literally"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (_, bthen, Some belse) ->
         if (bthen =| "true" && belse =| "false") ||
@@ -136,31 +113,31 @@ module IfReturnsLit : EXPRCHECK = struct
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "IfReturnsLit", check
+  let name = "IfReturnsLit"
 end
 
 (** ------------ Checks rules: if cond then cond | if cond then _ else cond -- *)
 module IfCondThenCond : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "returning just the condition or simplifying further"
   let violation = "returning the condition of an if statement on success and a boolean literal otherwise"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (cond, bthen, Some belse) ->
         if e_eq cond bthen && (belse =| "false" || belse =| "true") then
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "IfCondThenCond", check
+  let name = "IfCondThenCond"
 end
 
 
 (** ------------ Checks rules: if not cond then x else y --------------------- *)
 module IfNotCond : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "swapping the then and else branches of the if statement"
   let violation = "checking negation in the if condition"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (cond, _, Some _) ->
         begin match cond.pexp_desc with
@@ -170,16 +147,16 @@ module IfNotCond : EXPRCHECK = struct
         end
       | _ -> ()
     end
-  let name = "IfNotCond", check
+  let name = "IfNotCond"
 end
 
 (** ------------ Checks rules: if x then true else y ------------------------- *)
 module IfToOr : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "rewriting using a boolean operator like `||`"
   let violation = "overly verbose if statement that can be simplified"
 
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (_cond, bthen, Some belse) ->
         if not (belse =| "true") &&
@@ -189,16 +166,16 @@ module IfToOr : EXPRCHECK = struct
       | _ -> ()
     end
 
-  let name = "IfToOr", check
+  let name = "IfToOr"
 end
 
 (** ------------ Checks rules: if x then y else false ------------------------ *)
 module IfToAnd : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "rewriting using a boolean operator like `&&`"
   let violation = "overly verbose if statement that can be simplified"
 
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (cond, bthen, Some belse) ->
         if not (bthen =| "true") &&
@@ -209,45 +186,45 @@ module IfToAnd : EXPRCHECK = struct
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "IfToAnd", check
+  let name = "IfToAnd"
 end
 
 (** ------------ Checks rules: if x then false else y ------------------------ *)
 module IfToAndInv : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "rewriting using a boolean operator like `&&` and `not`"
   let violation = "overly verbose if statement that can be simplified"
-  let check st (E {location;source;pattern} : ctxt) =
+  let check st (E {location;source;pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (_cond, bthen, Some belse) ->
         if not (belse =| "true") && not (belse =| "false")  && bthen =| "false" then
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "IfToAndInv", check
+  let name = "IfToAndInv"
 end
 
 (** ------------ Checks rules: if x then y else true ------------------------ *)
 module IfToOrInv : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "rewriting using a boolean operator like `||` and `not`"
   let violation = "overly verbose if statement that can be simplified"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (_cond, bthen, Some belse) ->
         if not (bthen =| "true") && not (bthen =| "false") && belse =| "true" then
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "IfToOrInv", check
+  let name = "IfToOrInv"
 end
 
 (** ------------ Checks rules: ... || true | true || ... | false || ... | ... || false -- *)
 module RedundantOr : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "simplifying further"
   let violation = "Usage of the `||` is redundant"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (appl, [(_, l);(_, r)]) ->
         if appl =~ "||" && (e_eq_any (smash_boolean_tree pattern) ||
@@ -258,15 +235,15 @@ module RedundantOr : EXPRCHECK = struct
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "RedundantOr", check
+  let name = "RedundantOr"
 end
 
 (** ------------ Checks rules: ... && true | true && ... | false && ... | ... && false -- *)
 module RedundantAnd : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "simplifying further"
   let violation = "Usage of the `&&` is redundant"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (appl, [(_, l);(_, r)]) ->
         if appl =~ "&&" && (e_eq_any (smash_boolean_tree pattern) ||
@@ -277,15 +254,15 @@ module RedundantAnd : EXPRCHECK = struct
           st := Hint.mk_hint location source fix violation :: !st
       | _ -> ()
     end
-  let name = "RedundantAnd", check
+  let name = "RedundantAnd"
 end
 
 (** ------------ Checks rules: if c then () else e --------------------- *)
 module IfEmptyThenElse : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let fix = "replace with `if not c then e`"
   let violation = "using `if c then () else e`"
-  let check st (E {location; source; pattern} : ctxt) =
+  let check st (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (cond, then_branch, Some else_branch) ->
         begin match then_branch.pexp_desc with
@@ -296,13 +273,13 @@ module IfEmptyThenElse : EXPRCHECK = struct
         end
       | _ -> ()
     end
-  let name = "IfEmptyThenElse", check
+  let name = "IfEmptyThenElse"
 end
 
 
 (** ------------ Checks rules: "foo" ^ "bar" ^ "baz" ----------------------- *)
 module SuccessiveStringConcat : EXPRCHECK = struct
-  type ctxt = Parsetree.expression_desc Pctxt.pctxt
+  type t = Parsetree.expression_desc
   let violation = "successive string concatenations using the `^` operator"
 
   type concat_part =
@@ -343,5 +320,5 @@ module SuccessiveStringConcat : EXPRCHECK = struct
           let fix = Printf.sprintf "Use Printf.sprintf %S %s" format_string (String.concat " " args) in
           st := Hint.mk_hint location source fix violation :: !st
     | _ -> ()
-  let name = "SuccessiveStringConcat", check
+  let name = "SuccessiveStringConcat"
 end

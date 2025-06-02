@@ -4,6 +4,14 @@
 open Canonical
 open Parsetree
 
+(* Operations to perform on a CFG node, taking callbacks into account. *)
+type 'a check_handlers = {
+  pre:  'a -> unit;
+  on :  'a -> unit;
+  post: 'a -> unit;
+}
+
+
 (* force computation *)
 let cfg = Arthur.parse ()
 
@@ -15,17 +23,29 @@ let currently_linting : string ref = ref ""
     the linter needs to know what the arthur.json looks like! 
 *)
 
-let pass_exprs (store: Hint.hint list ref) (f: string) (expr : Parsetree.expression) : unit =
-  let pc = Pctxt.ctxt_of_expr f expr in
+
+(* Compute the checks to run on a given expression node *)
+let pass_exprs (store: Hint.hint list ref) (f: string) (expr : expression) : expression check_handlers =
   let checks =
     Style.Checkers.expr_checks
+    (* Extract the useful functions from the module *)
+    |> List.map (fun c ->
+      let module C = (val c : Style.Check.EXPRCHECKCALLBACK) in
+      C.name, (C.check, C.callback))
     (* Fetch the lint config *)
     |> Arthur.extract ( Lazy.force cfg )
     |> Arthur.refine (Lazy.force cfg) !currently_linting
     (* Take local and global attributes into account *)
     |> Attributes.filter_out_checks expr.pexp_attributes
   in
-  List.iter (fun (_, check) -> check store pc) checks
+  (* Build all 3 closures *)
+  let pre expr =  List.iter (fun (_, (_, cb)) -> cb.Style.Check.pre_callback expr.pexp_desc) checks in
+  let post expr = List.iter (fun (_, (_, cb)) -> cb.Style.Check.post_callback expr.pexp_desc) checks in
+  let on expr =
+    let pc = Pctxt.ctxt_of_expr f expr in
+    List.iter (fun (_, (check, _)) -> check store pc) checks
+  in
+  {pre; on; post}
 
 
 let set_toplevel : Parsetree.structure_item -> unit = fun i ->
@@ -46,6 +66,7 @@ let pass_structures (store: Hint.hint list ref) (f: string) (structure : Parsetr
   let pc = Pctxt.ctxt_of_structure f structure in
   let checks =
     Style.Checkers.struct_checks
+    |> List.map (fun c -> let module C = (val c : Style.Check.STRUCTURECHECK) in C.name, C.check)
     |> Arthur.extract (Lazy.force cfg)
     |> Arthur.refine (Lazy.force cfg) !currently_linting
     (* there is no ideal attribute here. use only the global ones *)
@@ -58,6 +79,9 @@ let pass_file (store: Hint.hint list ref) (f: string) (_payload: Parsetree.struc
   let ch = open_in f in
   let pc = Pctxt.ctxt_for_lexical f ch in
   let checks =
-    Style.Checkers.lexical_checks |> Arthur.extract (Lazy.force cfg) in
+    Style.Checkers.lexical_checks
+    |> List.map (fun c -> let module C = (val c : Style.Check.LEXICALCHECK) in C.name, C.check)
+    |> Arthur.extract (Lazy.force cfg)
+  in
   List.iter (fun (_, check) -> check store pc) checks;
   close_in ch

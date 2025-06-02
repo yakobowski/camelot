@@ -1,43 +1,43 @@
 (** Expression checks *)
-let expr_checks = [
-  Equality.EqList.name
-; Equality.EqOption.name
-; Equality.EqBool.name
-; Equality.EqPhysical.name
-; Match.MatchBool.name
-; Match.MatchInt.name
-; Match.MatchListVerbose.name
-; Match.MatchRecord.name
-; Match.MatchTuple.name
-; Verbose.LitPrepend.name
-; Verbose.TupleProj.name
-; Verbose.IfReturnsLit.name
-; Verbose.IfCondThenCond.name
-; Verbose.IfNotCond.name
-; Verbose.IfToOr.name
-; Verbose.IfToAnd.name
-; Verbose.IfToAndInv.name
-; Verbose.IfToOrInv.name
-; Verbose.NestedIf.name
-; Verbose.NestedMatch.name
-; Verbose.RedundantOr.name
-; Verbose.RedundantAnd.name
-; Verbose.IfEmptyThenElse.name
-; Verbose.SuccessiveStringConcat.name
-]
-
-let exp_callbacks = [
-  Verbose.LitPrepend.callback
-]
+let expr_checks : (module Check.EXPRCHECKCALLBACK) list =
+  List.map Check.expr_check_with_callbacks
+    [ (module Equality.EqList)
+    ; (module Equality.EqOption)
+    ; (module Equality.EqBool)
+    ; (module Equality.EqPhysical)
+    ; (module Match.MatchBool)
+    ; (module Match.MatchInt)
+    ; (module Match.MatchListVerbose)
+    ; (module Match.MatchRecord)
+    ; (module Match.MatchTuple)
+    ; (module Verbose.TupleProj)
+    ; (module Verbose.IfReturnsLit)
+    ; (module Verbose.IfCondThenCond)
+    ; (module Verbose.IfNotCond)
+    ; (module Verbose.IfToOr)
+    ; (module Verbose.IfToAnd)
+    ; (module Verbose.IfToAndInv)
+    ; (module Verbose.IfToOrInv)
+    ; (module Verbose.NestedIf)
+    ; (module Verbose.NestedMatch)
+    ; (module Verbose.RedundantOr)
+    ; (module Verbose.RedundantAnd)
+    ; (module Verbose.IfEmptyThenElse)
+    ; (module Verbose.SuccessiveStringConcat)
+    ] @
+  (* Rules with automatic handling of ignored nodes *)
+  List.map Check_ignore.ignore_expr_check_with_callbacks
+    [ (module Verbose.LitPrepend)
+    ]
 
 (** Top-level structure checks *)
-let struct_checks = [
-  Hof.UseMap.name
-; Hof.UseFold.name
-; Hof.UseIter.name
+let struct_checks : (module Check.STRUCTURECHECK) list  = [
+  (module Hof.UseMap)
+; (module Hof.UseFold)
+; (module Hof.UseIter)
 ]
 
 (** Lexical checks *)
-let lexical_checks = [
-  Lexical.LineLength.name
+let lexical_checks : (module Check.LEXICALCHECK) list = [
+  (module Lexical.LineLength)
 ]

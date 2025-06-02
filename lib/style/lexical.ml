@@ -4,11 +4,11 @@ open Check
 (** --------- Checks rules: lines that exceed 80 characters in a given file ------------ *)
 module LineLength : LEXICALCHECK = struct
 
-  type ctxt = Pctxt.file Pctxt.pctxt 
+  type t = Pctxt.file
 
   let violation = "exceeding the 80 character line limit. Only showing (1) such violation of this kind, although there may be others - fix this and re-run the linter to find them."
 
-  let check st (L {source; pattern = Pctxt.F chan}: ctxt) =
+  let check st (Pctxt.L {source; pattern = Pctxt.F chan}) =
     let filestream : (int * string) Stream.t =
       (* Stream.from 0 indexes file lines, but line numbers start at 1. Have to increment so that the line numbers are consistent with editors :) *)
       Stream.from
@@ -21,6 +21,6 @@ module LineLength : LEXICALCHECK = struct
           st := Hint.line_hint source line_no line :: !st
       ) filestream
 
-  let name = "LineLength", check
+  let name = "LineLength"
 
 end

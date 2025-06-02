@@ -1,17 +1,18 @@
 open Canonical
+open Canonical.Pctxt
 open Check
 open Utils
 open Astutils
 
 (** -------------- Checks rules: If top-level let should use List.map -------------------- *)
 module UseMap : STRUCTURECHECK = struct
-  type ctxt = Parsetree.structure_item_desc Pctxt.pctxt
+  type t = Parsetree.structure_item_desc
 
   let fix = "using a higher order function like transform"
 
   let violation = "overly verbose function implementation"
 
-  let check st (P {location; source; pattern} : ctxt) =
+  let check st (P {location; source; pattern}) =
     begin match pattern with
       | Pstr_value (Asttypes.Recursive, [vb]) ->
         let func_name = ident_of_let vb in
@@ -29,19 +30,19 @@ module UseMap : STRUCTURECHECK = struct
       | _ -> ()
     end
 
-  let name = "UseMap", check
+  let name = "UseMap"
 end
 
 
 (** -------------- Checks rules: If top-level let should use List.fold_right ------------- *)
 module UseFold : STRUCTURECHECK = struct
-  type ctxt = Parsetree.structure_item_desc Pctxt.pctxt
+  type t = Parsetree.structure_item_desc
 
   let fix = "using a higher order function like fold"
 
   let violation = "overly verbose function implementation"
 
-  let check st (P {location; source; pattern} : ctxt) =
+  let check st (P {location; source; pattern}) =
     begin match pattern with
       | Pstr_value (Asttypes.Recursive, [vb]) ->
         let func_name = ident_of_let vb in
@@ -59,19 +60,19 @@ module UseFold : STRUCTURECHECK = struct
       | _ -> ()
     end
 
-  let name = "UseFold", check
+  let name = "UseFold"
 end
 
 (** -------------- Checks rules: If top-level let should use List.iter ------------------- *)
 module UseIter : STRUCTURECHECK = struct
 
-  type ctxt = Parsetree.structure_item_desc Pctxt.pctxt
+  type t = Parsetree.structure_item_desc
 
   let fix = "using a higher order function like iter"
 
   let violation = "overly verbose function implementation"
 
-  let check st (P {location; source; pattern} : ctxt) =
+  let check st (P {location; source; pattern}) =
     begin match pattern with
       | Pstr_value (Asttypes.Recursive, [vb]) ->
         let func_name = ident_of_let vb in
@@ -89,5 +90,5 @@ module UseIter : STRUCTURECHECK = struct
       | _ -> ()
     end
 
-  let name = "UseIter", check
+  let name = "UseIter"
 end
