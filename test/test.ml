@@ -176,13 +176,65 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
-    File ./examples/verbose.ml, line 118, columns: 8-72
+    File ./examples/verbose.ml, line 127, columns: 22-83
     Warning:
     	successive string concatenations using the `^` operator
     You wrote:
-    	 "foo%d " ^ (s1 ^ (" bar " ^ ((f v2) ^ (" baz " ^ ((g (h v3)) ^ " qux")))))
+    	 "Result: " ^ ((Int.to_string (k * 2)) ^ (" units" ^ " calculated"))
     Consider:
-    	Use Printf.sprintf "foo%%d %s bar %s baz %s qux" s1 (f v2) (g (h v3))
+    	Use Printf.sprintf "Result: %d units calculated" (k * 2)
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 126, columns: 22-110
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 "Value is " ^
+      ((if x > 5 then "val:" ^ (string_of_int x) else "small") ^
+         (" status" ^ " end"))
+    Consider:
+    	Use Printf.sprintf "Value is %s status end" (if x > 5 then "val:" ^ (string_of_int x) else "small")
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 125, columns: 47-159
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 "prefix: " ^
+      (str ^
+         (" int: " ^
+            ((Int.to_string num) ^
+               (" call: " ^
+                  ((List.hd ["val:" ^ (string_of_int 123)]) ^ " suffix")))))
+    Consider:
+    	Use Printf.sprintf "prefix: %s int: %d call: %s suffix" str (num) (List.hd ["val:" ^ (string_of_int 123)])
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 124, columns: 21-74
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 "value: " ^ ((string_of_int i) ^ (" units" ^ " available"))
+    Consider:
+    	Use Printf.sprintf "value: %d units available" (i)
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 123, columns: 26-79
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 "count: " ^ ((Int.to_string count) ^ (" items" ^ " total"))
+    Consider:
+    	Use Printf.sprintf "count: %d items total" (count)
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 120, columns: 8-72
+    Warning:
+    	successive string concatenations using the `^` operator
+    You wrote:
+    	 "foo%d " ^ (s1 ^ (" bar " ^ ((f s2) ^ (" baz " ^ ((g (h s3)) ^ " qux")))))
+    Consider:
+    	Use Printf.sprintf "foo%%d %s bar %s baz %s qux" s1 (f s2) (g (h s3))
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 113, columns: 8-36
@@ -422,6 +474,33 @@ let%expect_test _ =
     	 [1] @ t
     Consider:
     	using `::` instead
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 127, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let _ = let k = 20 in "Result: " ^ Int.to_string (k * 2) ^ " units" ^ " calculated"
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 126, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let _ = let x = 10 in "Value is " ^ (if x > 5 then "val:" ^ string_of_int x else "small") ^ " status" ^ " end"
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/verbose.ml, line 125, columns: 0-80
+    Warning:
+    	exceeding the 80 character line limit
+    You wrote:
+    	 let _ = let num = 42 in let str = "example" in "prefix: " ^ str ^ " int: " ^ Int.to_string num ^ " call: " ^ (List.hd ["val:" ^ string_of_int 123]) ^ " suffix"
+    Consider:
+    	indenting to avoid exceeding the 80 character line limit
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/verbose.ml, line 65, columns: 0-80
