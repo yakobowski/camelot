@@ -104,17 +104,17 @@ let _ = "a" ^ ("b" ^ "c")
 (* Test: "a" ^ "b" ^ "c" ^ "d" (parsed ("a"^"b")^"c")^"d" *)
 (* Expect:
    - Warn for (("a"^"b")^"c")^"d"
-   - Warn for ("a"^"b")^"c"
-   - No warn for "a"^"b"
-   (2 warnings total) *)
+   - No warn for ("a"^"b")^"c" (redundant)
+   - No warn for "a"^"b" (too small)
+   (1 warning total) *)
 let _ = "a" ^ "b" ^ "c" ^ "d"
 
 (* Test: "a" ^ ("b" ^ ("c" ^ "d")) (explicit right-assoc) *)
 (* Expect:
    - Warn for "a" ^ ("b"^("c"^"d"))
-   - Warn for "b" ^ ("c"^"d")
-   - No warn for "c"^"d"
-   (2 warnings total) *)
+   - No Warn for "b" ^ ("c"^"d") (redundant)
+   - No warn for "c"^"d" (too small)
+   (1 warning total) *)
 let _ = "a" ^ ("b" ^ ("c" ^ "d"))
 
 
@@ -134,9 +134,9 @@ let _ = s1 ^ (s2 ^ s3)
 (* Test with identifiers: s1 ^ s2 ^ s3 ^ s4 (parsed (s1^s2)^s3)^s4) *)
 (* Expect:
    - Warn for ((s1^s2)^s3)^s4
-   - Warn for (s1^s2)^s3
-   - No warn for s1^s2
-   (2 warnings total) *)
+   - No warn for (s1^s2)^s3 (redundant)
+   - No warn for s1^s2 (too small)
+   (1 warnings total) *)
 let _ = s1 ^ s2 ^ s3 ^ s4
 
 (* Complex case testing the suggested fix *)

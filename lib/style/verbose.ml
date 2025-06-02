@@ -278,9 +278,25 @@ end
 
 
 (** ------------ Checks rules: "foo" ^ "bar" ^ "baz" ----------------------- *)
-module SuccessiveStringConcat : EXPRCHECK = struct
+module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
   type t = Parsetree.expression_desc
   let violation = "successive string concatenations using the `^` operator"
+
+  (* Find all string concatenations directly under a ^, to mark them as being skipped.
+     The root expression can optionally be skipped, which is useful for ignoring the
+     top-level concatenation *)
+  let rec string_concat_nodes ?skip_root (exp: Parsetree.expression) =
+    string_concat_nodes_desc ?skip_root exp.pexp_desc
+  and string_concat_nodes_desc ?(skip_root=false) desc =
+    match desc with
+    | Pexp_apply (f, [(_, e1); (_, e2)]) ->
+      if f =~ "^" then
+        (if skip_root then [] else [desc]) @ string_concat_nodes e1 @ string_concat_nodes e2
+      else
+        []
+    | _ -> []
+
+  let children_to_ignore e = string_concat_nodes_desc ~skip_root:true e
 
   type concat_part =
     | Literal of string
