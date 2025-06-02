@@ -301,7 +301,8 @@ module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
   type concat_part =
     | Literal of string
     | Identifier of string
-    | OtherExpression of Parsetree.expression_desc (* Store the whole expression *)
+    | IntToStringArg of Parsetree.expression (* Store the argument expression *)
+    | OtherExpression of Parsetree.expression_desc (* Store the expression description *)
 
   let rec collect_concat_parts_desc (expr_desc : Parsetree.expression_desc) : concat_part list =
     match expr_desc with
@@ -309,6 +310,12 @@ module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
         collect_concat_parts lhs_expr @ collect_concat_parts rhs_expr
     | Pexp_constant (Pconst_string (s, _, None)) -> [Literal s]
     | Pexp_ident { txt = Lident name; _ } -> [Identifier name]
+    | Pexp_apply (func_expr, [(Asttypes.Nolabel, arg_expr)]) -> (
+        match func_expr.pexp_desc with
+        | Pexp_ident {txt = Ldot (Lident "Int", "to_string"); _} -> [IntToStringArg arg_expr]
+        | Pexp_ident {txt = Lident "string_of_int"; _} -> [IntToStringArg arg_expr]
+        | _ -> [OtherExpression expr_desc] (* Store the expression itself *)
+      )
     | _ -> [OtherExpression expr_desc] (* Store the expression itself *)
   and collect_concat_parts (expr : Parsetree.expression) : concat_part list =
     collect_concat_parts_desc expr.pexp_desc
@@ -328,13 +335,16 @@ module SuccessiveStringConcat : Check_ignore.EXPRCHECKIGNORE = struct
                   (escaped_s :: format, args)
                 | Identifier name ->
                   ("%s" :: format, name :: args)
+                | IntToStringArg arg_expr ->
+                  let arg_expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression arg_expr) in
+                  ("%d" :: format, arg_expr_str :: args)
                 | OtherExpression desc ->
                   let expr = Ast_helper.Exp.mk desc in
                   let expr_str = Printf.sprintf "(%s)" (Pprintast.string_of_expression expr) in
                   ("%s" :: format, expr_str :: args)
               ) concat ([], [])
             in
-            let format_string = String.concat "" (formats) in
+            let format_string = String.concat "" formats in
             let fix = Printf.sprintf "Use Printf.sprintf %S %s" format_string (String.concat " " args) in
             st := Hint.mk_hint location source fix violation :: !st
     | _ -> ()

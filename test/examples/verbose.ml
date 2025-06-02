@@ -119,6 +119,12 @@ let g x = x
 (* Complex case testing the suggested fix message *)
 let _ = "foo%d " ^ s1 ^ " bar " ^ (f s2) ^ " baz " ^ (g (h s3)) ^ " qux"
 
+(* --- New test cases for Int.to_string and string_of_int --- *)
+let _ = let count = 10 in "count: " ^ Int.to_string count ^ " items" ^ " total"
+let _ = let i = 5 in "value: " ^ string_of_int i ^ " units" ^ " available"
+let _ = let num = 42 in let str = "example" in "prefix: " ^ str ^ " int: " ^ Int.to_string num ^ " call: " ^ (List.hd ["val:" ^ string_of_int 123]) ^ " suffix"
+let _ = let x = 10 in "Value is " ^ (if x > 5 then "val:" ^ string_of_int x else "small") ^ " status" ^ " end"
+let _ = let k = 20 in "Result: " ^ Int.to_string (k * 2) ^ " units" ^ " calculated"
 
 (* --- Cases that should NOT trigger the rule --- *)
 (* No warning (too small) *)
