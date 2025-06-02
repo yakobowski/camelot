@@ -13,7 +13,8 @@ let base_s = { x = 10; y = 20; z = 30; w = 40 }
 
 (* 1. Basic case: two fields copied, two new *)
 (* EXPECT: Warning, Fix: { base_record with c = "new_c"; d = "new_d" } *)
-let new_record_1 = { a = base_record.a; b = base_record.b; c = "new_c"; d = "new_d" }
+let new_record_1 =
+  { a = base_record.a; b = base_record.b; c = "new_c"; d = "new_d" }
 
 (* 2. More copied fields: three fields copied, one new *)
 (* EXPECT: Warning, Fix: { base_s with w = 500 } *)
@@ -21,10 +22,16 @@ let new_s_1 = { x = base_s.x; y = base_s.y; z = base_s.z; w = 500 }
 
 (* 3. All fields copied from the same source *)
 (* EXPECT: Warning, Fix: base_record *)
-let new_record_all_copied = { a = base_record.a; b = base_record.b; c = base_record.c; d = base_record.d }
+let new_record_all_copied =
+  { a = base_record.a; b = base_record.b;
+    c = base_record.c; d = base_record.d }
 
 (* 4. Complex expressions for non-copied fields *)
-(* EXPECT: Warning, Fix: { base_record with c = String.uppercase_ascii "new_c_complex"; d = Printf.sprintf "%s_complex" "new_d" } *)
+(* EXPECT: Warning,
+Fix: { base_record with
+         c = String.uppercase_ascii "new_c_complex";
+         d = Printf.sprintf "%s_complex" "new_d" }
+*)
 let new_record_complex = { 
   a = base_record.a; 
   b = base_record.b; 
@@ -36,7 +43,8 @@ let new_record_complex = {
 
 (* 5. Only one field copied *)
 (* EXPECT: No Warning *)
-let no_warn_1 = { a = base_record.a; b = 3; c = "new_c_prime"; d = "new_d_prime" }
+let no_warn_1 =
+  { a = base_record.a; b = 3; c = "new_c_prime"; d = "new_d_prime" }
 
 (* 6. No fields copied (all new values) *)
 (* EXPECT: No Warning *)
@@ -44,70 +52,60 @@ let no_warn_2 = { a = 100; b = 200; c = "hello"; d = "world" }
 
 (* 7. Fields copied from DIFFERENT records *)
 (* EXPECT: No Warning *)
-let no_warn_3 = { a = base_record.a; b = other_record.b; c = "mixed"; d = "source" }
+let no_warn_3 =
+  { a = base_record.a; b = other_record.b; c = "mixed"; d = "source" }
 
 (* 8. Already using record update syntax *)
 (* EXPECT: No Warning *)
 let already_updated = { base_record with c = "already_updated" }
 
-(* 9. Record update syntax where the 'with' part itself refers to the base record's field *)
-(* This is a valid use of update syntax and should not be confused with verbose copying *)
+(* 9. Record update syntax where the 'with' part itself refers
+   to the base record's field *)
+(* This is a valid use of update syntax and should not be confused with
+   verbose copying *)
 (* EXPECT: No Warning *)
 let already_updated_self_ref = { base_record with b = base_record.b + 1 }
-let already_updated_self_ref_multiple = { base_record with a = base_record.a + 1; b = base_record.b + 2 }
+let already_updated_self_ref_multiple =
+  { base_record with a = base_record.a + 1; b = base_record.b + 2 }
 
-(* 10. Case where a field is copied but to a different field name (should not count as "copied" for this rule) *)
-(* This is not what the rule targets; it targets {f1 = r.f1; f2 = r.f2, ...} *)
-(* EXPECT: No Warning (or if it warns, it's because 'a = base_record.a' is one copied field, and 'd = base_record.d' is another, making two - this depends on how "copied" is strictly defined regarding field names)
-   Let's refine: the current rule counts source expressions. So if r.a and r.d are used, that's two uses of 'r'.
-   The current logic for the fix string assumes the field names are the same.
-   If new_a = r.a and new_d = r.d, and these are the only two from r, then it's {r with new_b = 10; new_c = "c"}.
-   The current check counts number of usages of `base_record` as a source.
-   If `a = base_record.a` and `d = base_record.d`, then `base_record` is used twice.
-   The "differing" fields would be `b=10` and `c="c"`.
-   So, this *should* trigger.
-   The fix would be { base_record with b = 10; c = "c"}
-   However, the original record was { a = base_record.a; b = 10; c = "c"; d = base_record.d }
-   The values for 'a' and 'd' in the fix are taken implicitly from base_record. This is correct.
-*)
-(* EXPECT: Warning, Fix: { base_record with b = 10; c = "c" } *)
+(* 10. Case where a field is copied but to a different field name
+   (should not count as "copied" for this rule) *)
+(* This is not what the rule targets; it targets {f1 = r.f1; f2 = r.f2, ...}*)
+(* EXPECT: No Warning *)
 type r_prime = { new_a : int; new_b : int; new_c : string; new_d : string }
-let no_warn_4_actually_warns = { new_a = base_record.a; new_b = 10; new_c = "c"; new_d = base_record.d }
+let no_warn_4_actually_warns =
+  { new_a = base_record.a; new_b = 10; new_c = "c"; new_d = base_record.d }
 
 (* Let's add a clear case for the above, matching the type 'r' *)
 (* EXPECT: Warning, Fix: { base_record with b = 10; c = "c" } *)
-let warn_different_target_names_same_source = { a = base_record.a; b = 10; c = "c"; d = base_record.d }
+let warn_different_target_names_same_source =
+  { a = base_record.a; b = 10; c = "c"; d = base_record.d }
 
 (* Ensure field order doesn't matter for differing fields *)
-(* EXPECT: Warning, Fix: { base_record with c = "new_c_ordered"; d = "new_d_ordered" } (order in 'with' might vary but should be "; " separated) *)
-let new_record_fields_reordered = { c = "new_c_ordered"; a = base_record.a; d = "new_d_ordered"; b = base_record.b }
+(* EXPECT: Warning,
+   Fix: { base_record with c = "new_c_ordered"; d = "new_d_ordered" }
+   (order in 'with' might vary but should be "; " separated) *)
+let new_record_fields_reordered =
+  { c = "new_c_ordered";
+    a = base_record.a;
+    d = "new_d_ordered";
+    b = base_record.b }
 
 (* What if the source is complex? e.g. (get_record()).f1 *)
 (* The Pprintast.string_of_expression should handle this. *)
 let get_base_record () = base_record
-(* EXPECT: Warning, Fix: { (get_base_record ()) with c = "new_c_func"; d = "new_d_func" } *)
-let new_record_func_source = { a = (get_base_record ()).a; b = (get_base_record ()).b; c = "new_c_func"; d = "new_d_func" }
+(* EXPECT: Warning,
+   Fix: { (get_base_record ()) with c = "new_c_func"; d = "new_d_func" } *)
+let new_record_func_source =
+  { a = (get_base_record ()).a;
+    b = (get_base_record ()).b;
+    c = "new_c_func"; d = "new_d_func" }
 
-(* Multiple different records being updated from, but one of them multiple times *)
+(* Multiple different records being updated from,
+   but one of them multiple times *)
 type r2 = { f1: int; f2: int; f3: int }
 let r2_base1 = { f1=1; f2=2; f3=3 }
 let r2_base2 = { f1=10; f2=20; f3=30 }
 (* EXPECT: Warning for r2_base1. Fix: { r2_base1 with f3 = r2_base2.f3 } *)
-let new_r2_multi_source = { f1 = r2_base1.f1; f2 = r2_base1.f2; f3 = r2_base2.f3 }
-
-let () =
-  ignore new_record_1;
-  ignore new_s_1;
-  ignore new_record_all_copied;
-  ignore new_record_complex;
-  ignore no_warn_1;
-  ignore no_warn_2;
-  ignore no_warn_3;
-  ignore already_updated;
-  ignore already_updated_self_ref;
-  ignore already_updated_self_ref_multiple;
-  ignore no_warn_4_actually_warns;
-  ignore warn_different_target_names_same_source;
-  ignore new_record_fields_reordered;
-  ignore new_record_func_source;
-  ignore new_r2_multi_source
+let new_r2_multi_source =
+  { f1 = r2_base1.f1; f2 = r2_base1.f2; f3 = r2_base2.f3 }
