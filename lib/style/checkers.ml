@@ -23,6 +23,7 @@ let expr_checks = [
 ; Verbose.RedundantOr.name
 ; Verbose.RedundantAnd.name
 ; Verbose.IfEmptyThenElse.name
+; Verbose.SuccessiveStringConcat.name
 ]
 
 let exp_callbacks = [

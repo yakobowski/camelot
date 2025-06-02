@@ -191,3 +191,9 @@ let rec e_eq_any (exps: Parsetree.expression_desc list) : bool =
   | [] -> false
   | e :: rest -> (contains_e e rest) || e_eq_any rest 
 
+(** Checks if an expression description is an application of the string concat operator `^` *)
+let is_concat_application (e_desc: Parsetree.expression_desc) : bool =
+  match e_desc with
+  | Pexp_apply ({pexp_desc = Pexp_ident {txt = Lident "^"; _}; _}, _args) -> true
+  | _ -> false
+
