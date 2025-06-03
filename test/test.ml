@@ -889,3 +889,257 @@ let%expect_test _ =
     Consider:
     	using `::` instead
   |}]
+
+(* Run the tests in record.ml *)
+let%expect_test _ =
+  let file : string = "./examples/record.ml" in
+  let to_lint = to_ast file in
+  lint_and_hint to_lint;
+  [%expect{|
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_8 param1 param2 ({ f1; f2;_} : my_record_fields) =
+      ((f1 + (String.length f2)) + param1) + param2, lines 83-85, columns: 0-41
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_8 param1 param2 ({ f1; f2;_} : my_record_fields) =
+      ((f1 + (String.length f2)) + param1) + param2
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_7 x ({ f1; f2;_} : my_record_fields) y
+      ({ f3;_} : my_record_fields) z =
+      ((((x + f1) + (String.length f2)) + y) + f3) + z, lines 77-80, columns: 0-42
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_7 x ({ f1; f2;_} : my_record_fields) y
+      ({ f3;_} : my_record_fields) z =
+      ((((x + f1) + (String.length f2)) + y) + f3) + z
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_6 ({ f1; f2;_} : my_record_fields)
+      ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3, lines 71-74, columns: 0-30
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_6 ({ f1; f2;_} : my_record_fields)
+      ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_6 ({ f1; f2;_} : my_record_fields)
+      ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3, lines 71-74, columns: 0-30
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_6 ({ f1; f2;_} : my_record_fields)
+      ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_5 ({ f1; f2;_} : my_record_fields) =
+      (String.length f2) + f1, lines 66-68, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_5 ({ f1; f2;_} : my_record_fields) =
+      (String.length f2) + f1
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_5 ({ f1; f2;_} : my_record_fields) =
+      (String.length f2) + f1, lines 66-68, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_5 ({ f1; f2;_} : my_record_fields) =
+      (String.length f2) + f1
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_3 ({ f1 = _; f2 = _;_} : my_record_fields) = 0, lines 58-60, columns: 0-3
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_3 ({ f1 = _; f2 = _;_} : my_record_fields) = 0
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_3 ({ f1 = _; f2 = _;_} : my_record_fields) = 0, lines 58-60, columns: 0-3
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_3 ({ f1 = _; f2 = _;_} : my_record_fields) = 0
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2), lines 49-50, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2)
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_no_trigger_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2), lines 49-50, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_no_trigger_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2)
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_7 (({ f1; f2;_} as r) : my_record_fields) =
+      r.f1 + (String.length r.f2), lines 42-44, columns: 0-27
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_7 (({ f1; f2;_} as r) : my_record_fields) =
+      r.f1 + (String.length r.f2)
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_7 (({ f1; f2;_} as r) : my_record_fields) =
+      r.f1 + (String.length r.f2), lines 42-44, columns: 0-27
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_7 (({ f1; f2;_} as r) : my_record_fields) =
+      r.f1 + (String.length r.f2)
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_6 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2, lines 37-39, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_6 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_6 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2, lines 37-39, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_6 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_5
+      ({ one_very_long_field_name; another_very_long_field_name;_} :
+        my_record_fields)
+      = one_very_long_field_name + another_very_long_field_name, lines 31-34, columns: 0-57
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_5
+      ({ one_very_long_field_name; another_very_long_field_name;_} :
+        my_record_fields)
+      = one_very_long_field_name + another_very_long_field_name
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_5
+      ({ one_very_long_field_name; another_very_long_field_name;_} :
+        my_record_fields)
+      = one_very_long_field_name + another_very_long_field_name, lines 31-34, columns: 0-57
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_5
+      ({ one_very_long_field_name; another_very_long_field_name;_} :
+        my_record_fields)
+      = one_very_long_field_name + another_very_long_field_name
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_4 x y ({ f1; f2; f3;_} : my_record_fields) =
+      (((x + y) + f1) + (String.length f2)) + f3, lines 26-28, columns: 0-38
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_4 x y ({ f1; f2; f3;_} : my_record_fields) =
+      (((x + y) + f1) + (String.length f2)) + f3
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_3 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2, lines 21-23, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_3 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_3 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2, lines 21-23, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_3 ({ f1; f2;_} : my_record_fields) =
+      (string_of_int f1) ^ f2
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_2 x ({ f1; f2; f3;_} : my_record_fields) y =
+      (((x + f1) + (String.length f2)) + f3) + y, lines 16-18, columns: 0-38
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_2 x ({ f1; f2; f3;_} : my_record_fields) y =
+      (((x + f1) + (String.length f2)) + f3) + y
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2), lines 11-13, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2)
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
+
+    (* ------------------------------------------------------------------------ *)
+    File let func_triggers_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2), lines 11-13, columns: 0-23
+    Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+    You wrote:
+	 let func_triggers_1 ({ f1; f2;_} : my_record_fields) =
+      f1 + (String.length f2)
+    Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body. |}]

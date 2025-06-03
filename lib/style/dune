@@ -1,3 +1,13 @@
 (library
-(name style)
-(libraries compiler-libs.common canonical utils str))
+ (name style)
+ (libraries compiler-libs.common canonical utils str)
+ (modules
+  check
+  check_ignore
+  checkers
+  equality
+  hof
+  lexical
+  match
+  record
+  verbose))
