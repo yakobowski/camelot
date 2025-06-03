@@ -79,18 +79,10 @@ module Record : Check.STRUCTURECHECK = struct
 
   (* Helper Functions *)
 
-  (** Counts named fields in a record pattern.
-      Ignores fields specified with `_` as the name directly (e.g., `{_}`).
-      Counts fields like `{ field = _ }` as named fields. *)
+  (** Counts named fields in a record pattern. *)
   let count_named_fields (p : pattern) : int =
     let rec aux = function
-      | Ppat_record (fields, _) ->
-          List.fold_left
-            (fun acc_count (fname_loc, _) ->
-              if fname_loc.Location.txt <> Longident.Lident "_"
-              then acc_count + 1
-              else acc_count)
-            0 fields
+      | Ppat_record (fields, _) -> List.length fields
       | Ppat_constraint (constrained_p, _) -> aux constrained_p.ppat_desc
       | Ppat_alias (aliased_p, _) -> aux aliased_p.ppat_desc
       | _ -> 0
