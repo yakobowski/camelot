@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Note: lib/arthur is not instrumented, as it is not part of the test suite.
+
 dune runtest -f --instrument-with bisect_ppx
 bisect-ppx-report html
 bisect-ppx-report summary

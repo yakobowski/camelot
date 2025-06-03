@@ -4,6 +4,9 @@
    https://github.com/ocaml/ocaml/blob/trunk/parsing/ast_iterator.ml
 *)
 
+(* Coverage is not meaningful here: this is code copied from the compiler *)
+[@@@coverage exclude_file]
+
 open Parsetree
 open Location
 open Ast_iterator

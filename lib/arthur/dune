@@ -1,4 +1,5 @@
 (library
  (name arthur)
  (libraries yojson)
- (preprocess (pps bisect_ppx)))
+; (preprocess (pps bisect_ppx)) ; not covered by the testsuite -> skipped
+)

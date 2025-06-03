@@ -19,3 +19,5 @@ let rec sum_verbose (l: int list) =
   | [] -> 0
   | h :: t -> h + sum_verbose t
 
+(* To increase coverage in file lib/style/hof.ml *)
+let rec f x = x
