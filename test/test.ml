@@ -858,113 +858,199 @@ let%expect_test _ =
     	using `::` instead
   |}]
 
-(* Run the tests in record_update.ml *)
+
+  (* Run the tests in record.ml *)
 let%expect_test _ =
   let file : string = "./examples/record.ml" in
   let to_lint = to_ast file in
   lint_and_hint to_lint;
   [%expect{|
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, lines 114-115, columns: 2-54
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base1.f2) }
-    Consider:
-    	{ r2_base1 with f3 = (r2_base1.f2) }
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_7 { a; b } = a + (String.length b), lines 164-166, columns: 0-21
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_7 { a; b } = a + (String.length b)
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, line 111, columns: 2-58
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base2.f3) }
-    Consider:
-    	{ r2_base1 with f3 = (r2_base2.f3) }
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_6 ({ f1; f2;_} : my_record_fields)
+  ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3, lines 158-161, columns: 0-30
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_6 ({ f1; f2;_} : my_record_fields)
+  ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, lines 100-102, columns: 2-40
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 {
-      a = ((get_base_record ()).a);
-      b = ((get_base_record ()).b);
-      c = "new_c_func";
-      d = "new_d_func"
-    }
-    Consider:
-    	{ (get_base_record ()) with c = "new_c_func"; d = "new_d_func" }
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_5 ({ f1 = _; f2 = _;_} : my_record_fields) = 0, lines 153-155, columns: 0-3
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_5 ({ f1 = _; f2 = _;_} : my_record_fields) = 0
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, lines 89-92, columns: 2-23
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 {
-      c = "new_c_ordered";
-      a = (base_record.a);
-      d = "new_d_ordered";
-      b = (base_record.b)
-    }
-    Consider:
-    	{ base_record with c = "new_c_ordered"; d = "new_d_ordered" }
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_4 (({ f1; f2;_} as r) : my_record_fields) =
+  r.f1 + (String.length r.f2), lines 148-150, columns: 0-27
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_4 (({ f1; f2;_} as r) : my_record_fields) =
+  r.f1 + (String.length r.f2)
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, line 82, columns: 2-59
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 { a = (base_record.a); b = 10; c = "c"; d = (base_record.d) }
-    Consider:
-    	{ base_record with b = 10; c = "c" }
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_3
+  ({ one_very_long_field_name; another_very_long_field_name;_} :
+    my_record_fields)
+  = one_very_long_field_name + another_very_long_field_name, lines 142-145, columns: 0-57
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_3
+  ({ one_very_long_field_name; another_very_long_field_name;_} :
+    my_record_fields)
+  = one_very_long_field_name + another_very_long_field_name
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, lines 35-40, columns: 25-1
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 {
-      a = (base_record.a);
-      b = (base_record.b);
-      c = (String.uppercase_ascii "new_c_complex");
-      d = (Printf.sprintf "%s_complex" "new_d")
-    }
-    Consider:
-    	{
-      base_record with
-      c = (String.uppercase_ascii "new_c_complex");
-      d = (Printf.sprintf "%s_complex" "new_d")
-    }
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_2 x ({ f1; f2; f3;_} : my_record_fields) y =
+  (((x + f1) + (String.length f2)) + f3) + y, lines 137-139, columns: 0-38
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_2 x ({ f1; f2; f3;_} : my_record_fields) y =
+  (((x + f1) + (String.length f2)) + f3) + y
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, lines 26-27, columns: 2-42
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 {
-      a = (base_record.a);
-      b = (base_record.b);
-      c = (base_record.c);
-      d = (base_record.d)
-    }
-    Consider:
-    	base_record
+(* ------------------------------------------------------------------------ *)
+File let func_triggers_1 ({ f1; f2 } : my_record_fields) = f1 + (String.length f2), lines 132-134, columns: 0-23
+Warning:
+	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
+You wrote:
+	 let func_triggers_1 ({ f1; f2 } : my_record_fields) = f1 + (String.length f2)
+Consider:
+	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, line 21, columns: 14-67
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 { x = (base_s.x); y = (base_s.y); z = (base_s.z); w = 500 }
-    Consider:
-    	{ base_s with w = 500 }
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, lines 114-115, columns: 2-54
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base1.f2) }
+Consider:
+	{ r2_base1 with f3 = (r2_base1.f2) }
 
-    (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, line 17, columns: 2-68
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 { a = (base_record.a); b = (base_record.b); c = "new_c"; d = "new_d" }
-    Consider:
-    	{ base_record with c = "new_c"; d = "new_d" } |}]
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 111, columns: 2-58
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base2.f3) }
+Consider:
+	{ r2_base1 with f3 = (r2_base2.f3) }
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, lines 100-102, columns: 2-40
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 {
+  a = ((get_base_record ()).a);
+  b = ((get_base_record ()).b);
+  c = "new_c_func";
+  d = "new_d_func"
+}
+Consider:
+	{ (get_base_record ()) with c = "new_c_func"; d = "new_d_func" }
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, lines 89-92, columns: 2-23
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 {
+  c = "new_c_ordered";
+  a = (base_record.a);
+  d = "new_d_ordered";
+  b = (base_record.b)
+}
+Consider:
+	{ base_record with c = "new_c_ordered"; d = "new_d_ordered" }
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 82, columns: 2-59
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 { a = (base_record.a); b = 10; c = "c"; d = (base_record.d) }
+Consider:
+	{ base_record with b = 10; c = "c" }
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, lines 35-40, columns: 25-1
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 {
+  a = (base_record.a);
+  b = (base_record.b);
+  c = (String.uppercase_ascii "new_c_complex");
+  d = (Printf.sprintf "%s_complex" "new_d")
+}
+Consider:
+	{
+  base_record with
+  c = (String.uppercase_ascii "new_c_complex");
+  d = (Printf.sprintf "%s_complex" "new_d")
+}
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, lines 26-27, columns: 2-42
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 {
+  a = (base_record.a);
+  b = (base_record.b);
+  c = (base_record.c);
+  d = (base_record.d)
+}
+Consider:
+	base_record
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 21, columns: 14-67
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 { x = (base_s.x); y = (base_s.y); z = (base_s.z); w = 500 }
+Consider:
+	{ base_s with w = 500 }
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 17, columns: 2-68
+Warning:
+	Use record update syntax ({ r with ... }) when copying multiple fields.
+You wrote:
+	 { a = (base_record.a); b = (base_record.b); c = "new_c"; d = "new_d" }
+Consider:
+	{ base_record with c = "new_c"; d = "new_d" }
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 128, columns: 0-80
+Warning:
+	exceeding the 80 character line limit
+You wrote:
+	 let _r_val = { a = 1; b = "hi" };; (* Use _r_val to avoid unused warning, helps type context *)
+Consider:
+	indenting to avoid exceeding the 80 character line limit |}]
+
