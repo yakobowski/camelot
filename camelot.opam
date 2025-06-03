@@ -15,6 +15,7 @@ depends: [
   "camlp-streams" {>= "5.0.1"}
   "ppx_expect" {with-test & <= "v0.15.1"}
   "odoc" {with-doc & >= "1.5.0"}
+  "bisect_ppx" {>= "2.8.0"}
 ]
 dev-repo: "git+https://github.com/upenn-cis1xx/camelot.git"
 build: [
@@ -30,4 +31,5 @@ build: [
     "@runtest" {with-test}
     "@doc" {with-doc}
   ]
+  ["bisect_ppx"] {dev}
 ]

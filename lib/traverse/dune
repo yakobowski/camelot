@@ -1,3 +1,4 @@
 (library
 (name traverse)
-(libraries compiler-libs.common canonical style arthur))
+(libraries compiler-libs.common canonical style arthur)
+(preprocess (pps bisect_ppx)))

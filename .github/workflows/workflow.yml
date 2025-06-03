@@ -27,10 +27,23 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-version }}
 
       - name: Install Dependencies
-        run: opam install . --deps-only --with-test --with-doc
+        run: |
+          opam install . --deps-only --with-test --with-doc
 
       - name: Build
         run: opam exec -- dune build @install @doc
 
       - name: Test
-        run: opam exec -- dune runtest
+        run: opam exec -- dune runtest -f --instrument-with bisect_ppx
+
+      - name: Generate coverage report
+        run: |
+          opam exec -- bisect-ppx-report html
+          opam exec -- bisect-ppx-report summary
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: _coverage/bisect*.out
+          verbose: true

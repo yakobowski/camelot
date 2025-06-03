@@ -1,3 +1,4 @@
 (library
  (name arthur)
- (libraries yojson))
+ (libraries yojson)
+ (preprocess (pps bisect_ppx)))
