@@ -33,4 +33,9 @@ jobs:
         run: opam exec -- dune build @install @doc
 
       - name: Test
-        run: opam exec -- dune runtest
+        run: opam exec -- dune runtest -f --instrument-with bisect_ppx
+
+      - name: Generate coverage report
+        run: |
+          opam exec -- bisect-ppx-report html
+          opam exec -- bisect-ppx-report summary

@@ -1,3 +1,4 @@
 (library
  (name utils)
- (libraries compiler-libs.common canonical camlp-streams))
+ (libraries compiler-libs.common canonical camlp-streams)
+ (preprocess (pps bisect_ppx)))

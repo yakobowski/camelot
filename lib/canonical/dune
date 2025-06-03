@@ -1,3 +1,4 @@
 (library
  (name canonical)
- (libraries compiler-libs.common))
+ (libraries compiler-libs.common)
+ (preprocess (pps bisect_ppx)))

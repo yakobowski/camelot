@@ -1,3 +1,4 @@
 (library
  (name report)
- (libraries compiler-libs.common ANSITerminal canonical yojson))
+ (libraries compiler-libs.common ANSITerminal canonical yojson)
+ (preprocess (pps bisect_ppx)))
