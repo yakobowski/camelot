@@ -1,5 +1,5 @@
 open Canonical
-open Canonical.Pctxt (* Added for direct use of E *)
+open Canonical.Pctxt
 open Check
 open Parsetree
 open Asttypes
@@ -12,51 +12,58 @@ module UseRecordUpdateSyntax : EXPRCHECK = struct
 
   module StringMap = Map.Make(String)
 
-  let check st (E {location; source; pattern}) =  (* Now E can be used directly *)
+  (* Type for righ-hand part of a record creation *)
+  type assigned_fields = (Longident.t loc * expression) list
+
+  (* Given the assignments for a record creation, gather the fields that are
+    being initialized from the same field from another record, from the same field.
+     The key is the string representation of the source record, and the value is
+     - the source record expression
+     - the list of fields that are being copied. *)
+  let gather_source_fields (fields: assigned_fields) =
+    List.fold_left
+    (fun acc ({ txt = lbl; _}, assigned_expr) ->
+      match assigned_expr.pexp_desc with
+      | Pexp_field (src_rec, {txt = lbl'; _}) ->
+        (* Do source and assigned fields names match? *)
+        if lbl = lbl' then
+          (* Use the string representation of the source expression as the key *)
+          let src_rec_str = Pprintast.string_of_expression src_rec in
+          let lbls =
+            try snd (StringMap.find src_rec_str acc)
+            with Not_found -> []
+          in
+          StringMap.add src_rec_str (src_rec, lbl :: lbls) acc
+        else
+          acc
+      | _ -> acc
+  ) StringMap.empty fields
+
+  (* Given a list of fields, return the fields that are not in the given labels.
+     This is used to determine which fields are _not_ being copied from the source record. *)
+  let fields_to_update (fields: assigned_fields) labels =
+    List.fold_left (fun acc_diff (lbl, expr) ->
+      if not (List.mem lbl.txt labels) then
+        (lbl, expr) :: acc_diff
+      else
+        acc_diff
+    ) [] fields
+
+  let check st (E {location; source; pattern}) =
     match pattern with
-    | Pexp_record (original_fields, None) -> (* Only apply to full record creation, not { base with ... } *)
-      (* First pass: Group fields by their source expression string to find candidates for update syntax *)
-      let source_to_copied_fields_map =
-        List.fold_left (fun acc (_defined_label, (assigned_expr : expression)) ->
-          match assigned_expr.pexp_desc with
-          | Pexp_field (source_rec_expr, _source_field_label) ->
-            let source_rec_expr_str = Pprintast.string_of_expression source_rec_expr in
-            let current_list = try StringMap.find source_rec_expr_str acc with Not_found -> [] in
-            StringMap.add source_rec_expr_str (source_rec_expr :: current_list) acc
-          | _ -> acc
-        ) StringMap.empty original_fields
-      in
-
-      StringMap.iter (fun source_expr_str_for_update source_expr_list ->
-        if List.length source_expr_list >= 2 then (* This source is used for >= 2 fields *)
-          let representative_source_expr = List.hd source_expr_list in 
-          let differing_field_strings =
-            List.fold_left (fun acc_diff ((defined_label_lid_loc : Longident.t loc), (assigned_expr : expression)) ->
-              let is_copied_from_current_source =
-                match assigned_expr.pexp_desc with
-                | Pexp_field (src_expr, _src_lbl) ->
-                  (Pprintast.string_of_expression src_expr) = source_expr_str_for_update
-                | _ -> false
-              in
-
-              if not is_copied_from_current_source then
-                (* Use Longident.last to get the string name from Lident *)
-                let field_name_str = Longident.last defined_label_lid_loc.txt in (* .txt should now be resolved from open Asttypes *)
-                let field_expr_str = Pprintast.string_of_expression assigned_expr in
-                (field_name_str ^ " = " ^ field_expr_str) :: acc_diff
-              else
-                acc_diff
-            ) [] original_fields
+    | Pexp_record (original_fields, None) -> (* None -> only apply to full record creation, not { base with ... } *)
+      let source_rec_map = gather_source_fields original_fields in
+      StringMap.iter (fun _ (src_rec, labels) ->
+        if List.length labels >= 2 then (* This source is used for >= 2 fields *)
+          let other_fields = List.rev (fields_to_update original_fields labels) in
+          (* Build replacement expression *)
+          let new_rec =
+            if other_fields = []
+            then src_rec (* full copy *)
+            else Ast_helper.Exp.mk (Pexp_record (other_fields, Some src_rec))
           in
-
-          let base_record_str = Pprintast.string_of_expression representative_source_expr in
-          let final_fix_str =
-            match differing_field_strings with
-            | [] -> base_record_str (* All fields were copied, suggest just the base record *)
-            | nonEmpty_diff_fields ->
-              "{ " ^ base_record_str ^ " with " ^ (String.concat "; " (List.rev nonEmpty_diff_fields)) ^ " }"
-          in
-          st := Hint.mk_hint location source final_fix_str violation :: !st
-      ) source_to_copied_fields_map
+          let fix = Pprintast.string_of_expression new_rec in
+          st := Hint.mk_hint location source fix violation :: !st
+      ) source_rec_map
     | _ -> ()
 end

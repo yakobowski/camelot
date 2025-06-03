@@ -865,13 +865,22 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
+    File ./examples/record.ml, lines 114-115, columns: 2-54
+    Warning:
+    	Use record update syntax ({ r with ... }) when copying multiple fields.
+    You wrote:
+    	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base1.f2) }
+    Consider:
+    	{ r2_base1 with f3 = (r2_base1.f2) }
+
+    (* ------------------------------------------------------------------------ *)
     File ./examples/record.ml, line 111, columns: 2-58
     Warning:
     	Use record update syntax ({ r with ... }) when copying multiple fields.
     You wrote:
     	 { f1 = (r2_base1.f1); f2 = (r2_base1.f2); f3 = (r2_base2.f3) }
     Consider:
-    	{ r2_base1 with f3 = r2_base2.f3 }
+    	{ r2_base1 with f3 = (r2_base2.f3) }
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/record.ml, lines 100-102, columns: 2-40
@@ -885,7 +894,7 @@ let%expect_test _ =
       d = "new_d_func"
     }
     Consider:
-    	{ get_base_record () with c = "new_c_func"; d = "new_d_func" }
+    	{ (get_base_record ()) with c = "new_c_func"; d = "new_d_func" }
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/record.ml, lines 89-92, columns: 2-23
@@ -911,15 +920,6 @@ let%expect_test _ =
     	{ base_record with b = 10; c = "c" }
 
     (* ------------------------------------------------------------------------ *)
-    File ./examples/record.ml, line 77, columns: 2-75
-    Warning:
-    	Use record update syntax ({ r with ... }) when copying multiple fields.
-    You wrote:
-    	 { new_a = (base_record.a); new_b = 10; new_c = "c"; new_d = (base_record.d) }
-    Consider:
-    	{ base_record with new_b = 10; new_c = "c" }
-
-    (* ------------------------------------------------------------------------ *)
     File ./examples/record.ml, lines 35-40, columns: 25-1
     Warning:
     	Use record update syntax ({ r with ... }) when copying multiple fields.
@@ -931,7 +931,11 @@ let%expect_test _ =
       d = (Printf.sprintf "%s_complex" "new_d")
     }
     Consider:
-    	{ base_record with c = String.uppercase_ascii "new_c_complex"; d = Printf.sprintf "%s_complex" "new_d" }
+    	{
+      base_record with
+      c = (String.uppercase_ascii "new_c_complex");
+      d = (Printf.sprintf "%s_complex" "new_d")
+    }
 
     (* ------------------------------------------------------------------------ *)
     File ./examples/record.ml, lines 26-27, columns: 2-42

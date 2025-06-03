@@ -73,7 +73,7 @@ let already_updated_self_ref_multiple =
 (* This is not what the rule targets; it targets {f1 = r.f1; f2 = r.f2, ...}*)
 (* EXPECT: No Warning *)
 type r_prime = { new_a : int; new_b : int; new_c : string; new_d : string }
-let no_warn_4_actually_warns =
+let no_warn_4 =
   { new_a = base_record.a; new_b = 10; new_c = "c"; new_d = base_record.d }
 
 (* Let's add a clear case for the above, matching the type 'r' *)
@@ -109,3 +109,7 @@ let r2_base2 = { f1=10; f2=20; f3=30 }
 (* EXPECT: Warning for r2_base1. Fix: { r2_base1 with f3 = r2_base2.f3 } *)
 let new_r2_multi_source =
   { f1 = r2_base1.f1; f2 = r2_base1.f2; f3 = r2_base2.f3 }
+
+let new_r2_different_fields =
+  { f1 = r2_base1.f1; f2 = r2_base1.f2;
+    f3 = r2_base1.f2 (* not copied from same field *)}
