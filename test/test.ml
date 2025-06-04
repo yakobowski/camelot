@@ -13,7 +13,6 @@ let to_ast file =
   let src, f = safe_open file in
   src, ( f |> Lexing.from_channel |> Parse.implementation )
 
-let line_lint : bool ref = ref false 
 
 let lint_and_hint : (string * Parsetree.structure) -> unit = fun (file, ast) ->
   let store : Canonical.Hint.hint list ref = ref [] in
@@ -25,11 +24,9 @@ let lint_and_hint : (string * Parsetree.structure) -> unit = fun (file, ast) ->
 
 (* Run the tests in lexical.ml *)
 let%expect_test _ =
-  line_lint := true;
   let file : string = "./examples/lexical.ml" in
   let to_lint = to_ast file in
   lint_and_hint to_lint;
-  line_lint := false;
   [%expect{|
     (* ------------------------------------------------------------------------ *)
     File ./examples/lexical.ml, line 5, columns: 0-80
