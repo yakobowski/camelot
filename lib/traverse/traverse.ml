@@ -2,3 +2,4 @@
 *)
 
 module Iter = Iterator
+module Attributes = Attributes
