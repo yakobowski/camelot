@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # Note: lib/arthur is not instrumented, as it is not part of the test suite.
 
