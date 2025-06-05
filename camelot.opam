@@ -8,7 +8,7 @@ license: "Apache-2.0"
 homepage: "https://github.com/upenn-cis1xx/camelot"
 bug-reports: "https://github.com/upenn-cis1xx/camelot/issues"
 depends: [
-  "dune" {>= "2.5"}
+  "dune" {>= "2.7" & >= "2.5"}
   "ocaml" {>= "4.14.0" & < "5.0.0"}
   "ANSITerminal" {>= "0.8"}
   "yojson" {>= "1.7.0"}

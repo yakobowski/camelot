@@ -1,4 +1,10 @@
 (library
  (name report)
- (libraries compiler-libs.common ANSITerminal canonical yojson)
- (preprocess (pps bisect_ppx)))
+ (inline_tests)
+ (libraries
+   compiler-libs.common ANSITerminal canonical yojson
+   str ; for unit testing
+ )
+ (preprocess (pps ppx_expect bisect_ppx))
+ (instrumentation (backend bisect_ppx))
+)

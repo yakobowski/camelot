@@ -1,4 +1,4 @@
-(lang dune 2.5)
+(lang dune 2.7)
 (name camelot)
 (generate_opam_files true)
 
