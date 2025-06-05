@@ -23,6 +23,26 @@ let json_of_hint : Hint.hint -> Yojson.Basic.t =
     ("violation", `String violation)
   ]
 
+let common_loc_1 : Canonical.Warn.warn_loc =
+  {Canonical.Warn.file = "test.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10}
+
+let common_loc_2 : Canonical.Warn.warn_loc =
+  {Canonical.Warn.file = "test1.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10}
+
+let common_loc_3 : Canonical.Warn.warn_loc =
+  {Canonical.Warn.file = "test2.ml"; line_start = 2; line_end = 2; col_start = 5; col_end = 15}
+
+let common_hint_1 : Canonical.Hint.hint =
+  {Canonical.Hint.loc = common_loc_1; raw = "raw code"; fix = "fixed code"; violation = "violation message"}
+
+let common_hint_2 : Canonical.Hint.hint =
+  {Canonical.Hint.loc = common_loc_2; raw = "raw1"; fix = "fix1"; violation = "violation1"}
+
+let common_hint_3 : Canonical.Hint.hint =
+  {Canonical.Hint.loc = common_loc_3; raw = "raw2"; fix = "fix2"; violation = "violation2"}
+
+let common_hints_list : Canonical.Hint.hint list = [common_hint_2; common_hint_3]
+
 (* Utility display methods *)
 (* TODO: in the mli file, don't expose these methods  *)
 let display_verbose : Hint.hint -> unit =
@@ -73,6 +93,31 @@ let gradescope_display : Hint.hint list -> unit = fun l ->
 let json_display : Hint.hint list -> unit = fun l ->
   print_string (Yojson.Basic.to_string (`List (List.map json_of_hint l)))
 
+let capture_stdout_cleaned_for_test (thunk: unit -> unit) : unit =
+  let module Unix = Unix in
+  let module Str = Str in
+  let module In_channel = Stdlib.In_channel in
+
+  let old_stdout = Unix.dup Unix.stdout in
+  let r_fd, w_fd = Unix.pipe () in
+
+  Unix.dup2 w_fd Unix.stdout;
+  Unix.close w_fd;
+
+  thunk ();
+  Stdlib.flush Stdlib.stdout;
+
+  Unix.dup2 old_stdout Unix.stdout;
+  Unix.close old_stdout;
+
+  let ic = Unix.in_channel_of_descr r_fd in
+  let captured_content = In_channel.input_all ic in
+  In_channel.close ic;
+
+  let cleaned_output = Str.global_replace (Str.regexp "\\[[0-9;]*m") "" captured_content in
+  print_string cleaned_output
+;;
+
 let%expect_test "string_of_warnloc with different line_start and line_end" =
   let open Canonical.Warn in
   let loc = { file = "test.ml"; line_start = 1; line_end = 2; col_start = 0; col_end = 10 } in
@@ -80,15 +125,7 @@ let%expect_test "string_of_warnloc with different line_start and line_end" =
   [%expect{| File test.ml, lines 1-2, columns: 0-10 |}]
 
 let%expect_test "json_of_hint" =
-  let hint : Canonical.Hint.hint = (* Explicitly type hint *)
-    {
-      loc = { Canonical.Warn.file = "test.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10 };
-      raw = "raw code";
-      fix = "fixed code";
-      violation = "violation message";
-    }
-  in
-  print_endline (Yojson.Basic.pretty_to_string (json_of_hint hint));
+  print_endline (Yojson.Basic.pretty_to_string (json_of_hint common_hint_1));
   [%expect{|
     {
       "filename": "test.ml",
@@ -100,173 +137,34 @@ let%expect_test "json_of_hint" =
     } |}]
 
 let%expect_test "display_brief" =
-  let hint : Canonical.Hint.hint = (* Explicitly type hint *)
-    {
-      loc = { Canonical.Warn.file = "test.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10 };
-      raw = "raw code";
-      fix = "fixed code";
-      violation = "violation message";
-    }
-  in
-  (* Redirect stdout to capture printed output *)
-  let old_stdout = Unix.dup Unix.stdout in
-  let r, w = Unix.pipe () in
-  Unix.dup2 w Unix.stdout;
-  Unix.close w;
-  display_brief hint;
-  Unix.dup2 old_stdout Unix.stdout;
-  Unix.close old_stdout;
-  let output_channel = Unix.in_channel_of_descr r in
-  let buffer = Buffer.create 256 in
-  (try
-     while true do
-       Buffer.add_string buffer (input_line output_channel)
-     done
-   with End_of_file -> ());
-  close_in output_channel;
-  (* Remove ANSI codes for consistent testing *)
-  let cleaned_output = Str.global_replace (Str.regexp "\\[[0-9;]*m") "" (Buffer.contents buffer) in
-  print_endline cleaned_output;
+  capture_stdout_cleaned_for_test (fun () -> display_brief common_hint_1);
   [%expect{|
-    Warning:violation message
+File test.ml, line 1, columns: 0-10
+Warning:violation message
 
-    File test.ml, line 1, columns: 0-10 |}]
+|}]
 
 let%expect_test "student_display with empty list" =
-  (* Redirect stdout to capture printed output *)
-  let old_stdout = Unix.dup Unix.stdout in
-  let r, w = Unix.pipe () in
-  Unix.dup2 w Unix.stdout;
-  Unix.close w;
-  student_display [];
-  Unix.dup2 old_stdout Unix.stdout;
-  Unix.close old_stdout;
-  let output_channel = Unix.in_channel_of_descr r in
-  let buffer = Buffer.create 256 in
-  (try
-     while true do
-       Buffer.add_string buffer (input_line output_channel)
-     done
-   with End_of_file -> ());
-  close_in output_channel;
-  (* Remove ANSI codes for consistent testing *)
-  let cleaned_output = Str.global_replace (Str.regexp "\\[[0-9;]*m") "" (Buffer.contents buffer) in
-  print_endline cleaned_output;
-  [%expect{| No style violations |}]
+  capture_stdout_cleaned_for_test (fun () -> student_display []);
+  [%expect{|
+No style violations
+|}]
 
 let%expect_test "ta_display" =
-  let hints : Canonical.Hint.hint list = (* Explicitly type hints *)
-    [
-      {
-        loc = { Canonical.Warn.file = "test1.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10 };
-        raw = "raw1";
-        fix = "fix1";
-        violation = "violation1";
-      };
-      {
-        loc = { Canonical.Warn.file = "test2.ml"; line_start = 2; line_end = 2; col_start = 5; col_end = 15 };
-        raw = "raw2";
-        fix = "fix2";
-        violation = "violation2";
-      };
-    ]
-  in
-  (* Redirect stdout to capture printed output *)
-  let old_stdout = Unix.dup Unix.stdout in
-  let r, w = Unix.pipe () in
-  Unix.dup2 w Unix.stdout;
-  Unix.close w;
-  ta_display hints;
-  Unix.dup2 old_stdout Unix.stdout;
-  Unix.close old_stdout;
-  let output_channel = Unix.in_channel_of_descr r in
-  let buffer = Buffer.create 256 in
-  (try
-     while true do
-       Buffer.add_string buffer (input_line output_channel);
-       Buffer.add_char buffer '\n'; (* Add newline as input_line removes it *)
-     done
-   with End_of_file -> ());
-  close_in output_channel;
-  (* Remove ANSI codes for consistent testing *)
-  let cleaned_output = Str.global_replace (Str.regexp "\\[[0-9;]*m") "" (Buffer.contents buffer) in
-  print_string cleaned_output; (* Use print_string to preserve newlines *)
+  capture_stdout_cleaned_for_test (fun () -> ta_display common_hints_list);
   [%expect{|
-    Warning:violation2
+File test1.ml, line 1, columns: 0-10
+Warning:violation1
 
-    Final score: 2 mistakesFile test1.ml, line 1, columns: 0-10
-    Warning:violation1
+File test2.ml, line 2, columns: 5-15
+Warning:violation2
 
-    File test2.ml, line 2, columns: 5-15 |}]
+Final score: 2 mistakes|}]
 
 let%expect_test "gradescope_display" =
-  let hints : Canonical.Hint.hint list = (* Explicitly type hints *)
-    [
-      {
-        loc = { Canonical.Warn.file = "test1.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10 };
-        raw = "raw1";
-        fix = "fix1";
-        violation = "violation1";
-      };
-      {
-        loc = { Canonical.Warn.file = "test2.ml"; line_start = 2; line_end = 2; col_start = 5; col_end = 15 };
-        raw = "raw2";
-        fix = "fix2";
-        violation = "violation2";
-      };
-    ]
-  in
-    (* Redirect stdout to capture printed output *)
-  let old_stdout = Unix.dup Unix.stdout in
-  let r, w = Unix.pipe () in
-  Unix.dup2 w Unix.stdout;
-  Unix.close w;
-  gradescope_display hints;
-  Unix.dup2 old_stdout Unix.stdout;
-  Unix.close old_stdout;
-  let output_channel = Unix.in_channel_of_descr r in
-  let buffer = Buffer.create 256 in
-  (try
-     while true do
-       Buffer.add_string buffer (input_line output_channel)
-     done
-   with End_of_file -> ());
-  close_in output_channel;
-  print_endline (Buffer.contents buffer);
+  gradescope_display common_hints_list;
   [%expect{| 2 |}]
 
 let%expect_test "json_display" =
-  let hints : Canonical.Hint.hint list = (* Explicitly type hints *)
-    [
-      {
-        loc = { Canonical.Warn.file = "test1.ml"; line_start = 1; line_end = 1; col_start = 0; col_end = 10 };
-        raw = "raw1";
-        fix = "fix1";
-        violation = "violation1";
-      };
-      {
-        loc = { Canonical.Warn.file = "test2.ml"; line_start = 2; line_end = 2; col_start = 5; col_end = 15 };
-        raw = "raw2";
-        fix = "fix2";
-        violation = "violation2";
-      };
-    ]
-  in
-  (* Redirect stdout to capture printed output *)
-  let old_stdout = Unix.dup Unix.stdout in
-  let r, w = Unix.pipe () in
-  Unix.dup2 w Unix.stdout;
-  Unix.close w;
-  json_display hints;
-  Unix.dup2 old_stdout Unix.stdout;
-  Unix.close old_stdout;
-  let output_channel = Unix.in_channel_of_descr r in
-  let buffer = Buffer.create 256 in
-  (try
-     let s = In_channel.input_all output_channel in (* Read all content *)
-     Buffer.add_string buffer s
-   with End_of_file -> ());
-  close_in output_channel;
-  let captured_content = Buffer.contents buffer in
-  print_endline captured_content; (* Directly print the compact JSON *)
+  json_display common_hints_list;
   [%expect{| [{"filename":"test1.ml","line":[1,1],"col":[0,10],"source":"raw1","fix":"fix1","violation":"violation1"},{"filename":"test2.ml","line":[2,2],"col":[5,15],"source":"raw2","fix":"fix2","violation":"violation2"}] |}]
