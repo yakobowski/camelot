@@ -37,6 +37,7 @@ let struct_checks : (module Check.STRUCTURECHECK) list  = [
 ; (module Hof.UseFold)
 ; (module Hof.UseIter)
 ; (module Record.Record)
+; (module Lift.Lift)
 ]
 
 (** Lexical checks *)

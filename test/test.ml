@@ -1358,3 +1358,92 @@ let%expect_test "Attribute parsing tests" =
   initial_scope.all_scopes <- RulesSet.empty;
   ()
 (* The [@@expect.uncaught_exn] block will be removed as the specific error is now handled or avoided. *)
+
+(* Run the tests in lift.ml *)
+let%expect_test _ =
+  let file : string = "./examples/lift.ml" in
+  let to_lint = to_ast file in
+  lint_and_hint to_lint;
+  [%expect{|
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, lines 76-81, columns: 4-13
+Warning:
+	nested function does not depend on its context
+You wrote:
+	 let rec outer_rec x =
+  let cannot_be_lifted y =
+    let a = y + x in let b = a + 2 in let c = b + 3 in let d = c + 4 in d + 5 in
+  let can_be_lifted z =
+    let a = z + 1 in let b = a + 2 in let c = b + 3 in let d = c + 4 in d + 5 in
+  if x = 0
+  then 1
+  else ((cannot_be_lifted 10) + (can_be_lifted 20)) + (outer_rec (x - 1))
+Consider:
+	lift the nested function from lines 76:4-81:13 to before line 68:0
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, lines 58-63, columns: 4-13
+Warning:
+	nested function does not depend on its context
+You wrote:
+	 let f_shadow x =
+  let h a =
+    let x = a + 1 in let b = x + 2 in let c = b + 3 in let d = c + 4 in d + 5 in
+  (h 10) + x
+Consider:
+	lift the nested function from lines 58:4-63:13 to before line 57:0
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, lines 34-39, columns: 2-9
+Warning:
+	nested function does not depend on its context
+You wrote:
+	 let rec f_rec x =
+  let h a =
+    let b = a + 1 in let c = b + 2 in let d = c + 3 in let e = d + 4 in e + 5 in
+  if x = 0 then 1 else (h 10) + (f_rec (x - 1))
+Consider:
+	lift the nested function from lines 34:2-39:9 to before line 33:0
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, lines 11-16, columns: 2-9
+Warning:
+	nested function does not depend on its context
+You wrote:
+	 let f x =
+  let y = x + 1 in
+  let g z =
+    let a = y + 1 in let b = a + 2 in let c = b + 3 in let d = c + 4 in d + 5 in
+  let h a =
+    let b = a + 1 in let c = b + 2 in let d = c + 3 in let e = d + 4 in e + 5 in
+  (g y) + (h 10)
+Consider:
+	lift the nested function from lines 11:2-16:9 to before line 2:0
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, line 67, columns: 0-80
+Warning:
+	exceeding the 80 character line limit
+You wrote:
+	 (* This test should trigger the linting rule for can_be_lifted, but not for cannot_be_lifted *)
+Consider:
+	indenting to avoid exceeding the 80 character line limit
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, line 32, columns: 0-80
+Warning:
+	exceeding the 80 character line limit
+You wrote:
+	 (* This test should trigger the linting rule, because h is recursive but does not capture any variables from the context of f_rec *)
+Consider:
+	indenting to avoid exceeding the 80 character line limit
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/lift.ml, line 1, columns: 0-80
+Warning:
+	exceeding the 80 character line limit
+You wrote:
+	 (* This test should trigger the linting rule for h, but not for g, as g is now long enough to be checked *)
+Consider:
+	indenting to avoid exceeding the 80 character line limit
+  |}]
