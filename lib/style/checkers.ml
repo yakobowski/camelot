@@ -24,6 +24,7 @@ let expr_checks : (module Check.EXPRCHECKCALLBACK) list =
     ; (module Verbose.RedundantAnd)
     ; (module Verbose.IfEmptyThenElse)
     ; (module Record.UseRecordUpdateSyntax)
+    ; (module Destructure.Destructure)
     ] @
   (* Rules with automatic handling of ignored nodes *)
   List.map Check_ignore.ignore_expr_check_with_callbacks

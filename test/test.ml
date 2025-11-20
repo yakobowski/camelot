@@ -863,7 +863,34 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_7 { a; b } = a + (String.length b), lines 164-166, columns: 0-21
+File ./examples/record.ml, line 197, columns: 2-7
+Warning:
+	Unnecessary record destructuring. This variable is only used once.
+You wrote:
+	 fun { a } -> a
+Consider:
+	Replace a with record.a (you'll need to name the record argument)
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 165, columns: 2-10
+Warning:
+	Unnecessary record destructuring. This variable is only used once.
+You wrote:
+	 fun { a; b } -> a + (String.length b)
+Consider:
+	Replace a with record.a (you'll need to name the record argument)
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, line 165, columns: 2-10
+Warning:
+	Unnecessary record destructuring. This variable is only used once.
+You wrote:
+	 fun { a; b } -> a + (String.length b)
+Consider:
+	Replace b with record.b (you'll need to name the record argument)
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/record.ml, lines 164-166, columns: 0-21
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
@@ -872,8 +899,7 @@ Consider:
 	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_6 ({ f1; f2;_} : my_record_fields)
-  ({ f3;_} : my_record_fields) = (f1 + (String.length f2)) + f3, lines 158-161, columns: 0-30
+File ./examples/record.ml, lines 158-161, columns: 0-30
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
@@ -883,17 +909,16 @@ Consider:
 	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_5 ({ f1 = _; f2 = _;_} : my_record_fields) = 0, lines 153-155, columns: 0-3
+File ./examples/record.ml, lines 153-155, columns: 0-3
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
-	 let func_triggers_5 ({ f1 = _; f2 = _;_} : my_record_fields) = 0
+	 let
 Consider:
 	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_4 (({ f1; f2;_} as r) : my_record_fields) =
-  r.f1 + (String.length r.f2), lines 148-150, columns: 0-27
+File ./examples/record.ml, lines 148-150, columns: 0-27
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
@@ -903,10 +928,7 @@ Consider:
 	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_3
-  ({ one_very_long_field_name; another_very_long_field_name;_} :
-    my_record_fields)
-  = one_very_long_field_name + another_very_long_field_name, lines 142-145, columns: 0-57
+File ./examples/record.ml, lines 142-145, columns: 0-57
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
@@ -918,8 +940,7 @@ Consider:
 	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_2 x ({ f1; f2; f3;_} : my_record_fields) y =
-  (((x + f1) + (String.length f2)) + f3) + y, lines 137-139, columns: 0-38
+File ./examples/record.ml, lines 137-139, columns: 0-38
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
@@ -929,7 +950,7 @@ Consider:
 	Refactor manually. Suggestion: Destructure the record argument inside the function body.
 
 (* ------------------------------------------------------------------------ *)
-File let func_triggers_1 ({ f1; f2 } : my_record_fields) = f1 + (String.length f2), lines 132-134, columns: 0-23
+File ./examples/record.ml, lines 132-134, columns: 0-23
 Warning:
 	Function declaration with multi-line record arguments. Consider destructuring the record inside the function body, for example: `let { field1; field2; _ } = record_arg_name`.
 You wrote:
@@ -1358,6 +1379,102 @@ let%expect_test "Attribute parsing tests" =
   initial_scope.all_scopes <- RulesSet.empty;
   ()
 (* The [@@expect.uncaught_exn] block will be removed as the specific error is now handled or avoided. *)
+
+(* Run the tests in destructure.ml *)
+let%expect_test _ =
+  let file : string = "./examples/destructure.ml" in
+  let to_lint = to_ast file in
+  lint_and_hint to_lint;
+  [%expect{|
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 96, columns: 14-22
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 fun { a; b } -> print_int a
+    Consider:
+	Replace a with record.a (you'll need to name the record argument)
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 92, columns: 14-35
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 fun ({ M.foo = foo; bar } as r) -> print_int foo
+    Consider:
+	Replace foo with r.M.foo
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 83, columns: 14-39
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 fun ({ a = a_alias; b } as r) -> print_int a_alias
+    Consider:
+	Replace a_alias with r.a
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 74, columns: 12-27
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 fun ({ a; b } as r) -> print_int a
+    Consider:
+	Replace a with r.a
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 68, columns: 6-22
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 let { d = { a; b } } = my_nested in print_int a
+    Consider:
+	Replace a with my_nested.d.a
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 59, columns: 8-13
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 let { a } = my_r in let x = a in print_int x
+    Consider:
+	Replace a with my_r.a
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 41, columns: 8-22
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 let { M.foo = foo; bar } = get_r () in print_int foo
+    Consider:
+	Replace foo with get_r ().M.foo
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 35, columns: 6-20
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 let { M.foo = foo; bar } = M.my_r in print_int foo
+    Consider:
+	Replace foo with M.my_r.M.foo
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 19, columns: 6-24
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 let { a = a_alias; b } = my_r in print_int a_alias
+    Consider:
+	Replace a_alias with my_r.a
+
+    (* ------------------------------------------------------------------------ *)
+    File ./examples/destructure.ml, line 8, columns: 6-14
+    Warning:
+	Unnecessary record destructuring. This variable is only used once.
+    You wrote:
+	 let { a; b } = my_r in print_int a
+    Consider:
+	Replace a with my_r.a |}]
 
 (* Run the tests in lift.ml *)
 let%expect_test _ =
