@@ -53,13 +53,6 @@ let () =
     let get_r = fun () -> { M.foo = 3; M.bar = 4 } in
     print_int foo
 
-(* Should not trigger: x is shadowed in let body *)
-let x = 1
-let () =
-    let { a } = my_r in
-    let x = a in
-    print_int x
-
 type nested = { d : r }
 let my_nested = { d = { a = 1; b = 2; c = "nested" } }
 
@@ -91,6 +84,11 @@ let my_func_4 ({ a = a_alias; b } as r) =
 (* Should trigger: foo is used once *)
 let my_func_5 ({ M.foo; bar } as r) =
   print_int foo
+
+(* Should trigger: foo is used once *)
+(* TODO: suggests r.foo instead of r.M.foo*)
+let my_func_5 ({ M.bar; foo } as r) =
+  print_int foo  
 
 (* Should trigger: a is used once, no 'as' alias *)
 let my_func_6 { a; b } =

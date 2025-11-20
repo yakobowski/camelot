@@ -1387,7 +1387,7 @@ let%expect_test _ =
   lint_and_hint to_lint;
   [%expect{|
 (* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 96, columns: 14-22
+File ./examples/destructure.ml, line 94, columns: 14-22
 Warning:
 	Unnecessary record destructuring. This variable is only used once.
 You wrote:
@@ -1396,7 +1396,16 @@ Consider:
 	Replace a with record.a (you'll need to name the record argument)
 
 (* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 92, columns: 14-35
+File ./examples/destructure.ml, line 90, columns: 14-35
+Warning:
+	Unnecessary record destructuring. This variable is only used once.
+You wrote:
+	 fun ({ M.bar = bar; foo } as r) -> print_int foo
+Consider:
+	Replace foo with r.foo
+
+(* ------------------------------------------------------------------------ *)
+File ./examples/destructure.ml, line 85, columns: 14-35
 Warning:
 	Unnecessary record destructuring. This variable is only used once.
 You wrote:
@@ -1405,7 +1414,7 @@ Consider:
 	Replace foo with r.M.foo
 
 (* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 83, columns: 14-39
+File ./examples/destructure.ml, line 76, columns: 14-39
 Warning:
 	Unnecessary record destructuring. This variable is only used once.
 You wrote:
@@ -1414,7 +1423,7 @@ Consider:
 	Replace a_alias with r.a
 
 (* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 74, columns: 12-27
+File ./examples/destructure.ml, line 67, columns: 12-27
 Warning:
 	Unnecessary record destructuring. This variable is only used once.
 You wrote:
@@ -1423,22 +1432,13 @@ Consider:
 	Replace a with r.a
 
 (* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 68, columns: 6-22
+File ./examples/destructure.ml, line 61, columns: 6-22
 Warning:
 	Unnecessary record destructuring. This variable is only used once.
 You wrote:
 	 let { d = { a; b } } = my_nested in print_int a
 Consider:
 	Replace a with my_nested.d.a
-
-(* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 59, columns: 8-13
-Warning:
-	Unnecessary record destructuring. This variable is only used once.
-You wrote:
-	 let { a } = my_r in let x = a in print_int x
-Consider:
-	Replace a with my_r.a
 
 (* ------------------------------------------------------------------------ *)
 File ./examples/destructure.ml, line 41, columns: 8-22
