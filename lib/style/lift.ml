@@ -1,6 +1,7 @@
 open Canonical
 open Canonical.Pctxt
 open Check
+open Utils
 open Free_vars
 
 module Lift : STRUCTURECHECK = struct

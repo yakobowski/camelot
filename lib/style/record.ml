@@ -3,6 +3,7 @@ open Canonical.Pctxt
 open Check
 open Parsetree
 open Asttypes
+open Utils
 
 (** ------------ Checks rules: use of record update syntax ------------------ *)
 module UseRecordUpdateSyntax : EXPRCHECK = struct
@@ -125,8 +126,9 @@ module Record : Check.STRUCTURECHECK = struct
               if function_name_start_line <> arguments_end_line
                 && args_contains_record_pattern vb.pvb_expr
               then
-                let warn_loc_for_hint = Warn.warn_loc_of_loc ctxt_record.source vb.pvb_loc in
-                issues := Hint.mk_hint warn_loc_for_hint ctxt_record.source fix_msg violation :: !issues
+                let warn_loc_for_hint = Warn.warn_loc_of_loc ctxt_record.location.file vb.pvb_loc in
+                let raw_source = IOUtils.code_at_loc warn_loc_for_hint ctxt_record.source in
+                issues := Hint.mk_hint warn_loc_for_hint raw_source fix_msg violation :: !issues
           | _ -> ()
         ) vbs
     | _ -> ()
