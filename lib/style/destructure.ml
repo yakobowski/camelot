@@ -6,6 +6,7 @@ open Asttypes
 open Utils
 open Ast_iterator
 open Free_vars
+open Side_effects
 
 module Destructure : EXPRCHECK = struct
   type t = expression_desc
@@ -110,15 +111,16 @@ module Destructure : EXPRCHECK = struct
     let process_let_binding vb body =
         match vb.pvb_pat.ppat_desc with
         | Ppat_record _ ->
-            let record_expr_str = Pprintast.string_of_expression vb.pvb_expr in
-            let bindings = extract_bindings record_expr_str vb.pvb_pat in
-            List.iter
-              (fun (var_name, replacement) ->
-                if count_occurrences var_name body = 1 && not (is_shadowed vb.pvb_expr body) then
-                  let fix = "Replace " ^ var_name ^ " with " ^ replacement in
-                  let warn_loc = Warn.warn_loc_of_loc location.file vb.pvb_pat.ppat_loc in
-                  st := Hint.mk_hint warn_loc source fix violation :: !st)
-              bindings
+            if not (has_side_effects vb.pvb_expr) then
+              let record_expr_str = Pprintast.string_of_expression vb.pvb_expr in
+              let bindings = extract_bindings record_expr_str vb.pvb_pat in
+              List.iter
+                (fun (var_name, replacement) ->
+                  if count_occurrences var_name body = 1 && not (is_shadowed vb.pvb_expr body) then
+                    let fix = "Replace " ^ var_name ^ " with " ^ replacement in
+                    let warn_loc = Warn.warn_loc_of_loc location.file vb.pvb_pat.ppat_loc in
+                    st := Hint.mk_hint warn_loc source fix violation :: !st)
+                bindings
         | _ -> ()
     in
 

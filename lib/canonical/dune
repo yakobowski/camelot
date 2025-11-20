@@ -1,4 +1,5 @@
 (library
  (name canonical)
+ (public_name camelot.canonical)
  (libraries compiler-libs.common)
  (preprocess (pps bisect_ppx)))

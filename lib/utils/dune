@@ -1,4 +1,6 @@
 (library
  (name utils)
+ (public_name camelot.utils)
+ (modules IOUtils astutils expeq free_vars side_effects)
  (libraries compiler-libs.common canonical camlp-streams)
  (preprocess (pps bisect_ppx)))

@@ -1441,15 +1441,6 @@ Consider:
 	Replace a with my_nested.d.a
 
 (* ------------------------------------------------------------------------ *)
-File ./examples/destructure.ml, line 41, columns: 8-22
-Warning:
-	Unnecessary record destructuring. This variable is only used once.
-You wrote:
-	 let { M.foo = foo; bar } = get_r () in print_int foo
-Consider:
-	Replace foo with get_r ().M.foo
-
-(* ------------------------------------------------------------------------ *)
 File ./examples/destructure.ml, line 35, columns: 6-20
 Warning:
 	Unnecessary record destructuring. This variable is only used once.
