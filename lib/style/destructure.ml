@@ -107,7 +107,7 @@ module Destructure : EXPRCHECK = struct
     aux "" [] pattern
 
   (** The main check function. *)
-  let check st (E {location; source; pattern}) =
+  let check st ?rules:_ (E {location; source; pattern}) =
     let process_let_binding vb body =
         match vb.pvb_pat.ppat_desc with
         | Ppat_record _ ->

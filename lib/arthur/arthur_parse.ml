@@ -1,6 +1,8 @@
-(** 
-   Parser module for the json object to an internal representation 
+(**
+   Parser module for the json object to an internal representation
 *)
+
+
 
 
 (* Useful combinators *)
@@ -16,6 +18,7 @@ module OptInst = struct
     | Some i -> f i
 
   let (let*) e f = bind e f
+  let (>>=) = bind
 
   let with_default : 'a option -> 'a option -> 'a option = fun current replace ->
     match current with
@@ -69,7 +72,7 @@ end
     - a local configuration of functions that have rules to disable
 *)
 type arthur =
-  | Arthur of files * global * func list
+  | Arthur of files * global * func list * rule list
 
 (** A global is just a flag *)
 and global =
@@ -79,18 +82,19 @@ and global =
 and func =
   | Func of letname * flag
 
-(** A flag is just a list of files to disable *)
 and flag =
   | Disable of files
 and files = string list
 and letname = string
+and rule = Rule of string * Yojson.Basic.t
 
 
 (** A function for pretty_printing an arthur configuration *)
-let rec pp_arthur : arthur -> string = fun (Arthur (_files, glob, funcs)) ->
+let rec pp_arthur : arthur -> string = fun (Arthur (_files, glob, funcs, rules)) ->
   "Arthur (\n" ^
+  "Rules: " ^ (List.map (fun (Rule (s,j)) -> s ^ Yojson.Basic.to_string j) rules |> String.concat ",\n") ^
   pp_global glob ^ "\n," ^
-  pp_funcs funcs ^ "\n" ^ 
+  pp_funcs funcs ^ "\n" ^
   ")\n"
 
 and pp_global : global -> string = fun (Global f) ->
@@ -111,7 +115,7 @@ and pp_flag : flag -> string = fun (Disable fs) ->
   "disable: " ^ "[" ^ String.concat ", " fs ^ "]"
 
 let default : arthur =
-  Arthur ([], Global (Disable []), [])
+  Arthur ([], Global (Disable []), [], [])
 
 
 (** Looks for an arthur.json file *)
@@ -120,14 +124,26 @@ let from_file : string -> Yojson.Basic.t option = fun s ->
   with _ -> None
 
 (** Recursive descent parser for json to arthur *)
-let rec json_to_arthur : Yojson.Basic.t option -> arthur = fun tl ->
+let rec json_to_rule : Yojson.Basic.t -> rule option = fun j ->
+  let open OptInst in
+  let* name = PUtils.project "name" j >>= PUtils.string in
+  let* value = PUtils.project "value" j in
+  return (Rule (name, value))
+
+and json_to_rules : Yojson.Basic.t -> rule list option = fun j ->
+  let open OptInst in
+  let* rules = PUtils.project "rules" j in
+  let* rules_list = PUtils.list rules <?> (return []) in
+  return @@ List.filter_map json_to_rule rules_list
+and json_to_arthur : Yojson.Basic.t option -> arthur = fun tl ->
   let open OptInst in
   let parse_in =
-    let* raw = tl in 
+    let* raw = tl in
     let* glob = json_to_global raw
     and+ locals = json_to_funcs raw
-    and+ toLint = files raw in
-    return (Arthur (toLint, glob, locals)) <?> return default
+    and+ toLint = files raw
+    and+ rules = json_to_rules raw in
+    return (Arthur (toLint, glob, locals, rules)) <?> return default
   in
   match parse_in with
   | None -> default

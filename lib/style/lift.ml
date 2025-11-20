@@ -11,7 +11,7 @@ module Lift : STRUCTURECHECK = struct
   let violation = "nested function does not depend on its context"
   let min_lines = 5
 
-  let check st (P {location; source; pattern}) =
+  let check st ?rules:_ (P {location; source; pattern}) =
     let open Parsetree in
 
     let rec traverse_expr context_vars expr =

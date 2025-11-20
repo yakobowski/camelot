@@ -1,0 +1,25 @@
+{
+  "toLint": [
+    "./test/examples/test.ml"
+  ],
+  "global": {
+    "disable": [
+      "NoSideEffect"
+    ]
+  },
+  "rules": [
+    {
+      "name": "LineLength",
+      "value": 80
+    }
+  ],
+  "locals": [
+    {
+      "test": {
+        "disable": [
+          "NestedIfs"
+        ]
+      }
+    }
+  ]
+}

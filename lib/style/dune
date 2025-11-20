@@ -1,4 +1,4 @@
 (library
  (name style)
- (libraries compiler-libs.common canonical utils str)
+ (libraries compiler-libs.common canonical utils str arthur yojson)
  (preprocess (pps bisect_ppx)))

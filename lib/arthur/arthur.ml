@@ -1,4 +1,5 @@
 type t = Arthur_parse.arthur
+type rule = Arthur_parse.rule = Rule of string * Yojson.Basic.t
 
 
 let lint_config_file : string ref = ref "arthur.json"
@@ -13,12 +14,14 @@ let parse : unit -> t lazy_t = fun _ ->
 
 let extract : t -> (string * 'a) list -> (string * 'a) list = fun c rules ->
   match c with
-  | Arthur (_, Global (Disable toDisable), _) ->
+  | Arthur (_, Global (Disable toDisable), _, _) ->
     List.filter
       (fun (name,_) ->  not (List.exists (fun dis -> dis = name) toDisable)  )
       rules
 
-let files : t -> string list = fun (Arthur(l, _, _)) -> l
+let files : t -> string list = fun (Arthur(l, _, _, _)) -> l
+
+let rules : t -> Arthur_parse.rule list = fun (Arthur (_,_,_,rs)) -> rs
 
 let refine : t -> string -> (string * 'a) list -> (string * 'a) list = fun config func rules ->
   let open Arthur_parse in
@@ -31,7 +34,7 @@ let refine : t -> string -> (string * 'a) list -> (string * 'a) list = fun confi
     | Some l -> l
   in 
   match config with
-  | Arthur (_, _, fs) ->
+  | Arthur (_, _, fs, _) ->
     if config_has_rule fs then
       let toDisable = rule_for_func func fs in
       List.filter

@@ -50,7 +50,7 @@ module UseRecordUpdateSyntax : EXPRCHECK = struct
         acc_diff
     ) [] fields
 
-  let check st (E {location; source; pattern}) =
+  let check st ?rules:_ (E {location; source; pattern}) =
     match pattern with
     | Pexp_record (original_fields, None) -> (* None -> only apply to full record creation, not { base with ... } *)
       let source_rec_map = gather_source_fields original_fields in
@@ -112,7 +112,7 @@ module Record : Check.STRUCTURECHECK = struct
     | _ -> pat
   ;;
 
-  let check issues (Pctxt.P ctxt_record : t Pctxt.pctxt) =
+  let check issues ?rules:_ (Pctxt.P ctxt_record : t Pctxt.pctxt) =
     match ctxt_record.pattern with
     | Pstr_value (_, vbs) ->
         List.iter (fun vb ->

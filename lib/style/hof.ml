@@ -12,7 +12,7 @@ module UseMap : STRUCTURECHECK = struct
 
   let violation = "overly verbose function implementation"
 
-  let check st (P {location; source; pattern}) =
+  let check st ?rules:_ (P {location; source; pattern}) =
     begin match pattern with
       | Pstr_value (Asttypes.Recursive, [vb]) ->
         let func_name = ident_of_let vb in
@@ -42,7 +42,7 @@ module UseFold : STRUCTURECHECK = struct
 
   let violation = "overly verbose function implementation"
 
-  let check st (P {location; source; pattern}) =
+  let check st ?rules:_ (P {location; source; pattern}) =
     begin match pattern with
       | Pstr_value (Asttypes.Recursive, [vb]) ->
         let func_name = ident_of_let vb in
@@ -72,7 +72,7 @@ module UseIter : STRUCTURECHECK = struct
 
   let violation = "overly verbose function implementation"
 
-  let check st (P {location; source; pattern}) =
+  let check st ?rules:_ (P {location; source; pattern}) =
     begin match pattern with
       | Pstr_value (Asttypes.Recursive, [vb]) ->
         let func_name = ident_of_let vb in

@@ -1,0 +1,15 @@
+{
+  "toLint": [
+    "./test/examples/long_line.ml"
+  ],
+  "global": {
+    "disable": []
+  },
+  "rules": [
+    {
+      "name": "LineLength",
+      "value": 120
+    }
+  ],
+  "locals": []
+}
