@@ -10,7 +10,7 @@ module EqList : EXPRCHECK = struct
   type t = Parsetree.expression_desc
   let fix = "using a pattern match to check whether a list has a certain value"
   let violation = "using `=` with lists as a condition in an if statement"
-  let check st ?rules:_ (E {location; source; pattern}) =
+  let check st ~rules:_ (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_ifthenelse (cond, _, _) ->
         begin match cond.pexp_desc with
@@ -30,7 +30,7 @@ module EqOption : EXPRCHECK = struct
   type t = Parsetree.expression_desc
   let fix = "using a pattern match to check the presence of an option"
   let violation = "using `=` with options"
-  let check st ?rules:_ (E {location; source; pattern}) =
+  let check st ~rules:_ (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (application, [(_, lop); (_, rop)]) ->
         if application =~ "=" && (is_some_lit lop || is_some_lit rop) then
@@ -45,7 +45,7 @@ module EqBool : EXPRCHECK = struct
   type t = Parsetree.expression_desc
   let fix = "using the variable itself to represent the value"
   let violation = "using `=` with a boolean literal"
-  let check st ?rules:_ (E {location; source; pattern}) =
+  let check st ~rules:_ (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (application, [(_,lop); (_,rop)]) ->
         if application =~ "=" && (is_bool_lit lop || is_bool_lit rop) then
@@ -60,7 +60,7 @@ module EqPhysical : EXPRCHECK = struct
   type t = Parsetree.expression_desc
   let fix = "using `=` to evaluate structural equality"
   let violation = "using `==` when structural equality is intended"
-  let check st ?rules:_ (E {location; source; pattern}) =
+  let check st ~rules:_ (E {location; source; pattern}) =
     begin match pattern with
       | Pexp_apply (application, [(_,_); (_,_)]) ->
         if application =~ "==" then

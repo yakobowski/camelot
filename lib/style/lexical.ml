@@ -1,6 +1,5 @@
 open Canonical
 open Check
-open Arthur
 
 (** --------- Checks rules: lines that exceed 80 characters in a given file ------------ *)
 module LineLength : LEXICALCHECK = struct
@@ -9,14 +8,13 @@ module LineLength : LEXICALCHECK = struct
 
   let violation = "exceeding the 80 character line limit. Only showing (1) such violation of this kind, although there may be others - fix this and re-run the linter to find them."
 
-  let check st ?(rules = []) (Pctxt.L {source; pattern = Pctxt.F chan}) =
+  let check st ~rules (Pctxt.L {source; pattern = Pctxt.F chan}) =
     let max_len =
-      let open Arthur in
-      let rule = List.find_opt (fun (Rule (name, _)) -> name = "LineLength") rules in
+      let rule = List.find_opt (fun (Arthur.Rule (name, _)) -> name = "LineLength") rules in
       match rule with
-      | Some (Rule (_, `Int i)) -> i
-      | Some (Rule (_, j)) ->
-        let loc = Pctxt.L {source; pattern = Pctxt.F chan} |> Pctxt.file_of_pctxt in
+      | Some (Arthur.Rule (_, `Int i)) -> i
+      | Some (Arthur.Rule (_, j)) ->
+        let loc = Canonical.Warn.warn_loc source 1 1 0 0 in
         let msg = Printf.sprintf "invalid value for LineLength: %s" (Yojson.Basic.to_string j) in
         st := Hint.mk_hint loc source msg "invalid configuration" :: !st;
         80

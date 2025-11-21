@@ -43,7 +43,8 @@ let pass_exprs (store: Hint.hint list ref) (f: string) (expr : expression) : exp
   let post expr = List.iter (fun (_, (_, cb)) -> cb.Style.Check.post_callback expr.pexp_desc) checks in
   let on expr =
     let pc = Pctxt.ctxt_of_expr f expr in
-    List.iter (fun (_, (check, _)) -> check store pc) checks
+    let rules = Arthur.rules (Lazy.force cfg) in
+    List.iter (fun (_, (check, _)) -> check store ~rules pc) checks
   in
   {pre; on; post}
 
@@ -72,7 +73,8 @@ let pass_structures (store: Hint.hint list ref) (f: string) (structure : Parsetr
     (* there is no ideal attribute here. use only the global ones *)
     |> Attributes.filter_out_checks []
   in
-  List.iter (fun (_, check) -> check store pc) checks
+  let rules = Arthur.rules (Lazy.force cfg) in
+  List.iter (fun (_, check) -> check store ~rules pc) checks
 
 
 let pass_file (store: Hint.hint list ref) (f: string) (_payload: Parsetree.structure) : unit =
@@ -83,5 +85,6 @@ let pass_file (store: Hint.hint list ref) (f: string) (_payload: Parsetree.struc
     |> List.map (fun c -> let module C = (val c : Style.Check.LEXICALCHECK) in C.name, C.check)
     |> Arthur.extract (Lazy.force cfg)
   in
-  List.iter (fun (_, check) -> check store pc) checks;
+  let rules = Arthur.rules (Lazy.force cfg) in
+  List.iter (fun (_, check) -> check store ~rules pc) checks;
   close_in ch

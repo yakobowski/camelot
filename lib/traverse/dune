@@ -1,4 +1,5 @@
 (library
-(name traverse)
-(libraries compiler-libs.common canonical style arthur)
-(preprocess (pps bisect_ppx)))
+ (name traverse)
+ (modules descent find traverse iterator attributes)
+ (libraries compiler-libs.common canonical style arthur)
+ (preprocess (pps bisect_ppx)))

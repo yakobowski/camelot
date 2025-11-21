@@ -3,3 +3,4 @@
 
 module Iter = Iterator
 module Attributes = Attributes
+module Find = Find

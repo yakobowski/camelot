@@ -10,7 +10,7 @@ module type CHECK = sig
   val violation : Hint.violation
 
   (** A method that performs a check, given a lint context, and adds the hint to the list*)
-  val check : Hint.hint list ref -> ?rules:Arthur.rule list -> t Pctxt.pctxt -> unit
+  val check : Hint.hint list ref -> rules:Arthur.rule list -> t Pctxt.pctxt -> unit
 
   (** Name of the check. *)
   val name : string

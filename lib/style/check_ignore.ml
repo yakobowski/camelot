@@ -43,9 +43,9 @@ module Make_Expr(X: EXPRCHECKIGNORE) : EXPRCHECKCALLBACK = struct
 
   (* Perform the check if the current node has not been marked
      as ignored. *)
-  let check st ?rules (E {location; source; pattern} : Parsetree.expression_desc Pctxt.pctxt) =
+  let check st ~rules (E {location; source; pattern} : Parsetree.expression_desc Pctxt.pctxt) =
     if not (should_be_ignored pattern) then
-      X.check st ?rules (E {location; source; pattern})
+      X.check st ~rules (E {location; source; pattern})
 end
 
 let ignore_expr_check_with_callbacks (c: (module EXPRCHECKIGNORE)) : (module EXPRCHECKCALLBACK) =

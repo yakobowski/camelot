@@ -8,7 +8,7 @@ let short_pattern_match = 2
 let long_pattern_match = 3
 
 let make_check (pred: Parsetree.pattern -> bool) gen_error override_len enable_unwrap =
-  fun st ?rules:_ (E {location; source; pattern} : Parsetree.expression_desc Pctxt.pctxt) ->
+  fun st ~rules:_ (E {location; source; pattern} : Parsetree.expression_desc Pctxt.pctxt) ->
 
   let rec unwrap_tuple (p : Parsetree.pattern) : Parsetree.pattern list =
     begin match p.ppat_desc with
